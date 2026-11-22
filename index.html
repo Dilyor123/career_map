@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Career Map - OTMlar Yo'riqnomasi</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: var(--tg-theme-bg-color, #0f172a);
+      --card-bg: var(--tg-theme-secondary-bg-color, #1e293b);
+      --text: var(--tg-theme-text-color, #f8fafc);
+      --hint: var(--tg-theme-hint-color, #94a3b8);
+      --accent: var(--tg-theme-button-color, #38bdf8);
+      --accent-text: var(--tg-theme-button-text-color, #0f172a);
+      --border: #334155;
+      --grant-color: #22c55e;
+      --kont-color: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 14px;
+      padding-bottom: 75px;
+    }
+
+    header {
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .title-box h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .title-box p {
+      font-size: 12px;
+      color: var(--hint);
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .lang-btn, .refresh-btn {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .search-box {
+      margin-bottom: 12px;
+    }
+    .search-box input {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 14px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box input:focus {
+      border-color: var(--accent);
+    }
+
+    .tabs-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 8px;
+      scrollbar-width: none;
+    }
+    .tabs-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--hint);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tab-pill.active {
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: var(--accent);
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    select {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 13px;
+      outline: none;
+      width: 100%;
+    }
+
+    .score-slider-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+    .score-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .score-val {
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .score-slider-box input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .stats-info {
+      font-size: 12px;
+      color: var(--hint);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .otm-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .otm-name {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: #fff;
+    }
+    .badge-viloyat {
+      background: #334155;
+      color: #cbd5e1;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .otm-field {
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .scores-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .score-pill {
+      flex: 1;
+      padding: 7px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .pill-grant {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--grant-color);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+    .pill-kont {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--kont-color);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    .card-meta {
+      font-size: 12px;
+      color: var(--hint);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      border-top: 1px solid #2d3748;
+      padding-top: 8px;
+    }
+    .card-meta div {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .card-meta span {
+      color: var(--text);
+      text-align: right;
+    }
+
+    .chance-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .tag-grant { background: #22c55e; color: #022c22; }
+    .tag-kont { background: #f59e0b; color: #451a03; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 10px;
+      color: var(--hint);
+      font-size: 14px;
+    }
+
+    .loading-spinner {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title-box">
+      <h1>🎓 Career Map</h1>
+      <p id="sub_title">OTMlar va yo'nalishlar xaritasi</p>
+    </div>
+    <div class="header-actions">
+      <button class="refresh-btn" onclick="fetchGoogleSheetsData(true)" title="Yangilash">🔄</button>
+      <button class="lang-btn" onclick="toggleLang()" id="lang_btn">RU</button>
+    </div>
+  </header>
+
+  <!-- Qidiruv maydoni -->
+  <div class="search-box">
+    <input type="text" id="search_input" placeholder="🔍 Qidiruv (TATU, Dasturchi, Shifokor...)" oninput="applyFilters()">
+  </div>
+
+  <!-- Sohalar bo'yicha toza tartiblangan menyu tabs -->
+  <div class="tabs-scroll" id="tabs_container"></div>
+
+  <!-- Viloyat va tartiblash filtrlari -->
+  <div class="filter-grid">
+    <select id="viloyat_select" onchange="applyFilters()">
+      <option value="">Barcha hududlar</option>
+    </select>
+    <select id="sort_select" onchange="applyFilters()">
+      <option value="default">Tartiblash (Standart)</option>
+      <option value="grant_desc">Grant ball: Yuqoridan</option>
+      <option value="grant_asc">Grant ball: Pastdan</option>
+    </select>
+  </div>
+
+  <!-- Ball filtri slayderi -->
+  <div class="score-slider-box">
+    <div class="score-header">
+      <span id="score_label">🎯 Ball bo'yicha filtrlash:</span>
+      <span class="score-val" id="score_display">Barchasi</span>
+    </div>
+    <input type="range" id="score_slider" min="50" max="189" value="0" step="0.5" oninput="onScoreChange(this.value)">
+  </div>
+
+  <div class="stats-info">
+    <span id="stats_info">Yuklanmoqda...</span>
+    <span id="sync_status" style="font-size: 11px; color: var(--grant-color);"></span>
+  </div>
+
+  <!-- Universitet kartochkalari -->
+  <div class="cards-container" id="cards_list">
+    <div class="loading-spinner">⏳ Google Sheets'dan ma'lumotlar yuklanmoqda...</div>
+  </div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.expand();
+      tg.ready();
+    }
+
+    // 🔴 BU YERGA O'ZINGIZNING GOOGLE SHEETS CSV HAVOLANGIZNI QO'YASIZ:
+    const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTIkHNkexCIoeeV-Alx7LD5r5ZzM5S_xQH4NZOjH4HstjoRl0Q8U4K57quOK6vHnLJG-n9MEUhYa0QB/pub?gid=0&single=true&output=csv";
+
+    let DATA = [];
+    let currentLang = 'uz';
+    let selectedSoha = 'ALL';
+    let userScore = 0;
+
+    // CSV qatorlarini ob'ektga aylantirish (Parse CSV)
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) return [];
+
+      const parseRow = (line) => {
+        const result = [];
+        let cur = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            result.push(cur.trim());
+            cur = '';
+          } else {
+            cur += char;
+          }
+        }
+        result.push(cur.trim());
+        return result;
+      };
+
+      const headers = parseRow(lines[0]);
+      const rows = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const values = parseRow(lines[i]);
+        const entry = {};
+        headers.forEach((h, index) => {
+          entry[h] = values[index] ? values[index].replace(/^"|"$/g, '') : '';
+        });
+
+        // Raqam formatlariga moslashtirish
+        entry.grant_bal = parseFloat(entry.grant_bal) || entry.grant_bal;
+        entry.kontrakt_bal = parseFloat(entry.kontrakt_bal) || entry.kontrakt_bal;
+
+        rows.push(entry);
+      }
+      return rows;
+    }
+
+    // Google Sheets'dan avtomatik jonli yuklab olish
+    async function fetchGoogleSheetsData(force = false) {
+      const syncStatus = document.getElementById('sync_status');
+      syncStatus.innerText = "⏳ Yangilanmoqda...";
+
+      // Kesh tekshirish (15 daqiqagacha keshda saqlash, tezroq ochilishi uchun)
+      const cached = localStorage.getItem("careermap_data");
+      const cacheTime = localStorage.getItem("careermap_time");
+      const now = new Date().getTime();
+
+      if (!force && cached && cacheTime && (now - parseInt(cacheTime) < 15 * 60 * 1000)) {
+        DATA = JSON.parse(cached);
+        syncStatus.innerText = "⚡ Keshdan";
+        initTabs();
+        applyFilters();
+        return;
+      }
+
+      try {
+        // Agar maxsus CSV berilmagan bo'lsa yoki placeholder bo'lsa, lokal/test rejimida ishlaydi
+        if (!GOOGLE_SHEET_CSV_URL.includes("PLACEHOLDER")) {
+          // Keshni aylanib o'tish uchun timestamp qo'shiladi (?t=...)
+          const res = await fetch(`${GOOGLE_SHEET_CSV_URL}&t=${now}`);
+          const csvText = await res.text();
+          DATA = parseCSV(csvText);
+          localStorage.setItem("careermap_data", JSON.stringify(DATA));
+          localStorage.setItem("careermap_time", now.toString());
+          syncStatus.innerText = "✅ Jonli ulandi";
+        } else {
+          // Standart lokal zaxira
+          throw new Error("URL sozlanmagan");
+        }
+      } catch (err) {
+        console.warn("Google Sheets ulanishida xato, zaxira ma'lumot yuklanadi:", err);
+        syncStatus.innerText = "⚠️ Lokal baza";
+        // Agar CSV ulanmasa, zaxiradagi standart ma'lumotlar
+        if (cached) {
+          DATA = JSON.parse(cached);
+        } else {
+          DATA = [
+            { soha: "IT", soha_ru: "IT", kasb: "Dasturchi", kasb_ru: "Программист", viloyat: "Toshkent", viloyat_ru: "Ташкент", otm: "Toshkent axborot texnologiyalari universiteti (TATU)", yonalish: "Dasturiy injiniring", yonalish_ru: "Программная инженерия", grant_bal: 165.5, kontrakt_bal: 132.4, fanlar: "Matematika + Fizika", fanlar_ru: "Математика + Физика", sertifikat: "Ingliz tili B2", sertifikat_ru: "Английский B2", kontrakt_narx: "17.2 mln so'm" },
+            { soha: "Tibbiyot", soha_ru: "Медицина", kasb: "Shifokor", kasb_ru: "Врач", viloyat: "Toshkent", viloyat_ru: "Ташкент", otm: "Toshkent tibbiyot akademiyasi (TTA)", yonalish: "Davolash ishi", yonalish_ru: "Лечебное дело", grant_bal: 178.5, kontrakt_bal: 145.2, fanlar: "Biologiya + Kimyo", fanlar_ru: "Биология + Химия", sertifikat: "Biologiya / Kimyo (A/A+)", sertifikat_ru: "Биология / Химия (A/A+)", kontrakt_narx: "19.8 mln so'm" },
+            { soha: "Huquq", soha_ru: "Право", kasb: "Huquqshunos", kasb_ru: "Юрист", viloyat: "Toshkent", viloyat_ru: "Ташкент", otm: "Toshkent davlat yuridik universiteti (TDYU)", yonalish: "Yurisprudensiya", yonalish_ru: "Юриспруденция", grant_bal: 181.2, kontrakt_bal: 149.6, fanlar: "Tarix + Chet tili", fanlar_ru: "История + Иностр. язык", sertifikat: "Chet tili B2 / Tarix", sertifikat_ru: "Иностр. язык B2 / История", kontrakt_narx: "22.5 mln so'm" },
+            { soha: "Iqtisodiyot", soha_ru: "Экономика", kasb: "Iqtisodchi", kasb_ru: "Экономист", viloyat: "Toshkent", viloyat_ru: "Ташкент", otm: "Toshkent davlat iqtisodiyot universiteti (TDIU)", yonalish: "Iqtisodiyot", yonalish_ru: "Экономика", grant_bal: 166.4, kontrakt_bal: 131.8, fanlar: "Matematika + Chet tili", fanlar_ru: "Математика + Иностр. язык", sertifikat: "Chet tili B2 / Matematika", sertifikat_ru: "Иностр. язык B2 / Математика", kontrakt_narx: "18.5 mln so'm" }
+          ];
+        }
+      }
+
+      initTabs();
+      applyFilters();
+    }
+
+    function initTabs() {
+      const tabsBox = document.getElementById('tabs_container');
+      const sohalar = [...new Set(DATA.map(d => currentLang === 'ru' ? (d.soha_ru || d.soha) : d.soha))].filter(Boolean);
+
+      let tabsHtml = `<button class="tab-pill ${selectedSoha === 'ALL' ? 'active' : ''}" onclick="selectTab('ALL')">${currentLang === 'ru' ? '⭐ Все сферы' : '⭐ Barchasi'}</button>`;
+      sohalar.forEach(s => {
+        tabsHtml += `<button class="tab-pill ${selectedSoha === s ? 'active' : ''}" onclick="selectTab('${s}')">${s}</button>`;
+      });
+      tabsBox.innerHTML = tabsHtml;
+
+      const viloyatlar = [...new Set(DATA.map(d => currentLang === 'ru' ? (d.viloyat_ru || d.viloyat) : d.viloyat))].filter(Boolean).sort();
+      const viloyatSelect = document.getElementById('viloyat_select');
+      viloyatSelect.innerHTML = `<option value="">${currentLang === 'ru' ? '📍 Все регионы' : '📍 Barcha hududlar'}</option>` +
+        viloyatlar.map(v => `<option value="${v}">${v}</option>`).join('');
+    }
+
+    function selectTab(soha) {
+      selectedSoha = soha;
+      initTabs();
+      applyFilters();
+    }
+
+    function toggleLang() {
+      currentLang = currentLang === 'uz' ? 'ru' : 'uz';
+      document.getElementById('lang_btn').innerText = currentLang === 'uz' ? 'RU' : 'UZ';
+      document.getElementById('sub_title').innerText = currentLang === 'ru' ? 'Карта вузов и направлений' : "OTMlar va yo'nalishlar xaritasi";
+      document.getElementById('search_input').placeholder = currentLang === 'ru' ? '🔍 Поиск (ТАТУ, Юрист, Врач...)' : '🔍 Qidiruv (TATU, Dasturchi, Shifokor...)';
+      document.getElementById('score_label').innerText = currentLang === 'ru' ? '🎯 Фильтр по баллам:' : "🎯 Ball bo'yicha filtrlash:";
+      selectedSoha = 'ALL';
+      initTabs();
+      applyFilters();
+    }
+
+    function onScoreChange(val) {
+      userScore = parseFloat(val);
+      document.getElementById('score_display').innerText = userScore > 50 ? `${userScore} ball` : (currentLang === 'ru' ? 'Все' : 'Barchasi');
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const query = document.getElementById('search_input').value.trim().toLowerCase();
+      const selViloyat = document.getElementById('viloyat_select').value;
+      const selSort = document.getElementById('sort_select').value;
+
+      let filtered = DATA.filter(item => {
+        const soha = currentLang === 'ru' ? (item.soha_ru || item.soha) : item.soha;
+        const viloyat = currentLang === 'ru' ? (item.viloyat_ru || item.viloyat) : item.viloyat;
+        const yonalish = currentLang === 'ru' ? (item.yonalish_ru || item.yonalish) : item.yonalish;
+        const kasb = currentLang === 'ru' ? (item.kasb_ru || item.kasb) : item.kasb;
+
+        if (selectedSoha !== 'ALL' && soha !== selectedSoha) return false;
+        if (selViloyat && viloyat !== selViloyat) return false;
+
+        if (query) {
+          const match = (item.otm || '').toLowerCase().includes(query) ||
+                        (yonalish || '').toLowerCase().includes(query) ||
+                        (kasb || '').toLowerCase().includes(query) ||
+                        (viloyat || '').toLowerCase().includes(query);
+          if (!match) return false;
+        }
+
+        if (userScore > 50) {
+          if (typeof item.kontrakt_bal === 'number' && userScore < item.kontrakt_bal) {
+            return false;
+          }
+        }
+        return true;
+      });
+
+      if (selSort === 'grant_desc') {
+        filtered.sort((a, b) => (parseFloat(b.grant_bal) || 0) - (parseFloat(a.grant_bal) || 0));
+      } else if (selSort === 'grant_asc') {
+        filtered.sort((a, b) => (parseFloat(a.grant_bal) || 0) - (parseFloat(b.grant_bal) || 0));
+      }
+
+      renderCards(filtered);
+    }
+
+    function renderCards(list) {
+      const container = document.getElementById('cards_list');
+      const stats = document.getElementById('stats_info');
+
+      stats.innerText = currentLang === 'ru' ? `Найдено: ${list.length} вузов` : `Topildi: ${list.length} ta OTM`;
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="empty-state">${currentLang === 'ru' ? 'Ничего не найдено 😔' : 'Hech narsa topilmadi 😔'}</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(item => {
+        const viloyat = currentLang === 'ru' ? (item.viloyat_ru || item.viloyat) : item.viloyat;
+        const yonalish = currentLang === 'ru' ? (item.yonalish_ru || item.yonalish) : item.yonalish;
+        const fanlar = currentLang === 'ru' ? (item.fanlar_ru || item.fanlar) : item.fanlar;
+        const sertifikat = currentLang === 'ru' ? (item.sertifikat_ru || item.sertifikat) : item.sertifikat;
+
+        const gBal = parseFloat(item.grant_bal);
+        const kBal = parseFloat(item.kontrakt_bal);
+
+        let chanceHtml = '';
+        if (userScore > 50) {
+          if (!isNaN(gBal) && userScore >= gBal) {
+            chanceHtml = `<span class="chance-tag tag-grant">${currentLang === 'ru' ? '✅ Шанс на Грант' : '✅ Grantga imkon bor'}</span>`;
+          } else if (!isNaN(kBal) && userScore >= kBal) {
+            chanceHtml = `<span class="chance-tag tag-kont">${currentLang === 'ru' ? '💳 Шанс на Контракт' : '💳 Kontraktga imkon bor'}</span>`;
+          }
+        }
+
+        return `
+          <div class="otm-card">
+            ${chanceHtml}
+            <div class="card-top">
+              <div class="otm-name">🏛 ${item.otm}</div>
+              <span class="badge-viloyat">${viloyat}</span>
+            </div>
+            <div class="otm-field">📚 ${yonalish}</div>
+
+            <div class="scores-row">
+              <div class="score-pill pill-grant">
+                🎯 ${currentLang === 'ru' ? 'Грант' : 'Grant'}: ${item.grant_bal}
+              </div>
+              <div class="score-pill pill-kont">
+                💳 ${currentLang === 'ru' ? 'Контракт' : 'Kontrakt'}: ${item.kontrakt_bal}
+              </div>
+            </div>
+
+            <div class="card-meta">
+              <div><span>📝 ${currentLang === 'ru' ? 'Предметы:' : 'Fanlar:'}</span> <span>${fanlar}</span></div>
+              <div><span>📜 ${currentLang === 'ru' ? 'Сертификат:' : 'Sertifikat:'}</span> <span>${sertifikat}</span></div>
+              <div><span>💰 ${currentLang === 'ru' ? 'Контракт:' : 'Kontrakt narxi:'}</span> <span>${item.kontrakt_narx}</span></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Dastlabki yuklash
+    fetchGoogleSheetsData();
+  </script>
+</body>
+</html>
