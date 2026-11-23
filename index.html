@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Career Map - OTMlar, Navigator & Gemini AI</title>
+  <title>Career Map - OTMlar va Navigator</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -31,7 +31,7 @@
       background-color: var(--bg);
       color: var(--text);
       padding: 14px;
-      padding-bottom: 85px;
+      padding-bottom: 30px;
     }
 
     header {
@@ -84,6 +84,10 @@
       color: var(--text);
       font-size: 14px;
       outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box input:focus {
+      border-color: var(--accent);
     }
 
     .tabs-scroll {
@@ -265,101 +269,6 @@
     .nav-btn:active {
       background: rgba(6, 182, 212, 0.3);
     }
-
-    /* Floating AI Button */
-    .ai-fab {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: linear-gradient(135deg, #38bdf8, #6366f1);
-      color: #fff;
-      border: none;
-      width: 58px;
-      height: 58px;
-      border-radius: 50%;
-      box-shadow: 0 4px 18px rgba(99, 102, 241, 0.45);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      z-index: 100;
-      transition: transform 0.2s;
-    }
-    .ai-fab:active {
-      transform: scale(0.92);
-    }
-
-    /* AI Chat Modal */
-    .ai-modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.98);
-      z-index: 200;
-      flex-direction: column;
-      padding: 16px;
-    }
-    .ai-modal.open {
-      display: flex;
-    }
-    .ai-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-    .ai-chat-box {
-      flex: 1;
-      overflow-y: auto;
-      margin: 12px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .chat-bubble {
-      padding: 10px 14px;
-      border-radius: 12px;
-      max-width: 85%;
-      font-size: 13.5px;
-      line-height: 1.45;
-    }
-    .bubble-user {
-      align-self: flex-end;
-      background: var(--accent);
-      color: var(--accent-text);
-      font-weight: 600;
-    }
-    .bubble-ai {
-      align-self: flex-start;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-    }
-    .ai-input-row {
-      display: flex;
-      gap: 8px;
-    }
-    .ai-input-row input {
-      flex: 1;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 11px 14px;
-      color: #fff;
-      font-size: 14px;
-      outline: none;
-    }
-    .ai-send-btn {
-      background: var(--accent);
-      color: var(--accent-text);
-      border: none;
-      padding: 10px 16px;
-      border-radius: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
@@ -367,7 +276,7 @@
   <header>
     <div class="title-box">
       <h1>🎓 Career Map</h1>
-      <p id="sub_title">OTMlar, Navigator & Gemini AI</p>
+      <p id="sub_title">OTMlar va Navigator</p>
     </div>
     <div class="header-actions">
       <button class="refresh-btn" onclick="fetchData()" title="Yangilash">🔄</button>
@@ -407,119 +316,26 @@
 
   <div class="cards-container" id="cards_list"></div>
 
-  <!-- AI Chat Floating Tugmasi -->
-  <button class="ai-fab" onclick="toggleAiModal(true)" title="AI Maslahatchi">🤖</button>
-
-  <!-- AI Chat Modali -->
-  <div class="ai-modal" id="ai_modal">
-    <div class="ai-header">
-      <div style="font-weight:700; font-size:16px;">🤖 Gemini AI Maslahatchisi</div>
-      <button style="background:none; border:none; color:var(--hint); font-size:22px; cursor:pointer;" onclick="toggleAiModal(false)">✕</button>
-    </div>
-    <div class="ai-chat-box" id="ai_chat_box">
-      <div class="chat-bubble bubble-ai">
-        Assalomu alaykum! Men Gemini sun'iy intellekt maslahatchisiman. Menga OTMlar, kasblar yoki balingiz haqida savol bering!
-      </div>
-    </div>
-    <div class="ai-input-row">
-      <input type="text" id="ai_user_input" placeholder="Savolingizni yozing..." onkeypress="handleAiKeyPress(event)">
-      <button class="ai-send-btn" onclick="sendAiMessage()">Yuborish</button>
-    </div>
-  </div>
-
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.expand(); tg.ready(); }
 
-    // 🔴 1. Google Sheets CSV havolangiz:
     const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTIkHNkexCIoeeV-Alx7LD5r5ZzM5S_xQH4NZOjH4HstjoRl0Q8U4K57quOK6vHnLJG-n9MEUhYa0QB/pub?gid=0&single=true&output=csv";
-
-    // 🔴 2. Gemini API kaliti (ixtiyoriy, agar to'g'ridan-to'g'ri Gemini modeliga ulamoqchi bo'lsangiz):
-    const GEMINI_API_KEY = ""; 
 
     let DATA = [];
     let currentLang = 'uz';
     let selectedSoha = 'ALL';
     let userScore = 0;
 
-    // 🧭 NAVIGATOR FUNKSIYASI: Yandex va Google Maps orqali OTM manzilini ochish
+    // 🧭 NAVIGATOR: Yandex Maps & Google Maps orqali OTM lokatsiyasini ochish
     function openNavigator(otmName, city) {
       const query = encodeURIComponent(`${otmName} ${city} Uzbekistan`);
-      // Yandex Maps navigator havolasi
       const navUrl = `https://yandex.com/maps/?text=${query}`;
       if (tg && tg.openLink) {
         tg.openLink(navUrl);
       } else {
         window.open(navUrl, '_blank');
       }
-    }
-
-    // 🤖 AI MODAL FUNKSIYALARI
-    function toggleAiModal(show) {
-      document.getElementById('ai_modal').classList.toggle('open', show);
-    }
-
-    function handleAiKeyPress(e) {
-      if (e.key === 'Enter') sendAiMessage();
-    }
-
-    async function sendAiMessage() {
-      const input = document.getElementById('ai_user_input');
-      const text = input.value.trim();
-      if (!text) return;
-
-      const chatBox = document.getElementById('ai_chat_box');
-      chatBox.innerHTML += `<div class="chat-bubble bubble-user">${text}</div>`;
-      input.value = '';
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      chatBox.innerHTML += `<div class="chat-bubble bubble-ai" id="ai_loading"><i>Gemini javob tayyorlamoqda...</i></div>`;
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      let reply = "";
-
-      // Agar GEMINI_API_KEY berilgan bo'lsa, to'g'ridan-to'g'ri Gemini API chaqiriladi:
-      if (GEMINI_API_KEY) {
-        try {
-          const sysPrompt = "Sen O'zbekistondagi abituriyentlarga OTMlar, kasblar, kirish ballari va DTM imtihonlari bo'yicha yo'l-yo'riq ko'rsatuvchi Career Map sun'iy intellekt maslahatchisisan. Foydalanuvchiga samimiy, aniq va londa javob ber.";
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ role: 'user', parts: [{ text: `${sysPrompt}\n\nFoydalanuvchi savoli: ${text}` }] }]
-            })
-          });
-          const json = await res.json();
-          reply = json.candidates?.[0]?.content?.parts?.[0]?.text || "Javob olib bo'lmadi.";
-        } catch (e) {
-          reply = "Gemini API bilan bog'lanishda xatolik yuz berdi.";
-        }
-      } else {
-        // Agar API kalit bo'lmasa, OTMlar bazasi asosidagi intellektual tahlil:
-        const numMatch = text.match(/\d+(\.\d+)?/);
-        if (numMatch) {
-          const score = parseFloat(numMatch[0]);
-          const matches = DATA.filter(d => parseFloat(d.kontrakt_bal) <= score);
-          const topGrant = DATA.filter(d => parseFloat(d.grant_bal) <= score);
-          reply = `Siz kiritgan <b>${score} ball</b> bilan:
-` +
-                  `• Grantga kirish imkoni: <b>${topGrant.length} ta</b> OTMda;
-` +
-                  `• Kontraktga kirish imkoni: <b>${matches.length} ta</b> OTMda mavjud.
-
-` +
-                  `Eng mos yo'nalishlar: ` + [...new Set(matches.map(m => m.soha))].slice(0, 4).join(', ') +
-                  `.
-Batafsil ro'yxatni asosiy oynada ball filtrini surib ko'rishingiz mumkin!`;
-        } else {
-          reply = "OTM tanlashda qiziqqan sohangiz, test topshiradigan asosiy fanlaringiz va o'tgan yilgi ballarni hisobga oling. Agar to'plagan balingizni yozsangiz, aynan qaysi universitetlarga kirishingiz mumkinligini aytib beraman!";
-        }
-      }
-
-      const loading = document.getElementById('ai_loading');
-      if (loading) loading.remove();
-      chatBox.innerHTML += `<div class="chat-bubble bubble-ai">${reply}</div>`;
-      chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     function parseCSV(text) {
