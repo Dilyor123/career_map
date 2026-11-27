@@ -1,0 +1,10 @@
+id,tur,nomi,nomi_ru,boshlanish,tugash,havola,taxminiy,izoh,izoh_ru
+iiv_litsey_2027,litsey,IIV akademik litseylariga ariza,Заявки в академлицеи МВД,2027-02-01,2027-04-15,my.edu.uz,1,2026-yilda 1-fevral – 15-aprel bo'lgan.,В 2026 г.: 1 февраля – 15 апреля.
+otm_reg_2027,otm,OTMga test uchun ro'yxatdan o'tish (1-bosqich),Регистрация в вузы на тест (1 этап),2027-06-05,2027-06-25,my.uzbmb.uz,0,Qabul tartibiga ko'ra har yili 5–25-iyun.,По порядку приёма ежегодно 5–25 июня.
+litsey_2027,litsey,Akademik litseylarga hujjat topshirish,Подача документов в академлицеи,2027-06-10,2027-07-10,my.edu.uz,1,2026-yilda 10-iyun – 10-iyul; test 24–25-iyul bo'lgan.,В 2026 г.: 10 июня – 10 июля; тест 24–25 июля.
+litsey_test_2027,litsey,Akademik litseylarga kirish testi,Вступительный тест в академлицеи,2027-07-24,2027-07-25,my.edu.uz,1,Ruxsatnomani my.edu.uz dan oling.,Пропуск — на my.edu.uz.
+texnikum9_2027,texnikum,Texnikumlarga hujjat topshirish (9-sinf bazasida),Подача в техникумы (на базе 9 кл.),2027-07-01,2027-07-20,my.edu.uz,1,9-sinf bitiruvchilari uchun barcha o'rinlar davlat granti.,Для выпускников 9 кл. все места — госгрант.
+texnikum11_2027,texnikum,Texnikumlarga hujjat topshirish (11-sinf bazasida),Подача в техникумы (на базе 11 кл.),2027-07-01,2027-09-10,my.edu.uz,1,2026-yilda bo'sh o'rinlarga qo'shimcha qabul 14-oktabrgacha bo'lgan.,В 2026 г. доп. приём на свободные места — до 14 октября.
+tex_otm_2027,texnikum,Texnikum bitiruvchilarini OTMga suhbat asosida qabul (ro'yxatdan o'tish),Приём выпускников техникумов в вузы по собеседованию,2027-07-05,2027-07-25,my.uzbmb.uz,1,OTMning 2-bosqichiga imtihonsiz suhbat asosida (to'lov-kontrakt).,На 2 курс вуза по собеседованию (контракт).
+otm_vakant_2027,otm,OTMdagi bo'sh (vakant) o'rinlarga ariza,Заявки на вакантные места в вузах,2027-08-22,2027-08-28,my.uzbmb.uz,1,2026-yilda 22–28-avgust bo'lgan.,В 2026 г.: 22–28 августа.
+harbiy_2028,harbiy,"""Temurbeklar maktabi"" va ""Yosh chegarachilar"" litseylariga ariza (2028/2029)",Заявки в военно-академические лицеи (2028/2029),2027-09-05,2027-10-05,my.edu.uz,1,2026-yilda 5-sentyabr – 5-oktabr bo'lgan.,В 2026 г.: 5 сентября – 5 октября.
