@@ -1,471 +1,1155 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Career Map - OTMlar va Navigator</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --text: #f8fafc;
-      --hint: #94a3b8;
-      --accent: #38bdf8;
-      --accent-text: #0f172a;
-      --border: #334155;
-      --grant-color: #22c55e;
-      --kont-color: #f59e0b;
-      --nav-color: #06b6d4;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>Career Map</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  /* ---------- Ranglar: Telegram mavzusidan olinadi, bo'lmasa zaxira ---------- */
+  :root {
+    --fb-bg: #0b1220; --fb-card: #151f32; --fb-text: #eef2f7; --fb-hint: #8b98ab;
+    --fb-accent: #3aa0ff; --fb-on-accent: #ffffff;
+    --bg: var(--tg-theme-secondary-bg-color, var(--fb-bg));
+    --card: var(--tg-theme-section-bg-color, var(--tg-theme-bg-color, var(--fb-card)));
+    --text: var(--tg-theme-text-color, var(--fb-text));
+    --hint: var(--tg-theme-hint-color, var(--fb-hint));
+    --accent: var(--tg-theme-button-color, var(--fb-accent));
+    --on-accent: var(--tg-theme-button-text-color, var(--fb-on-accent));
+    --link: var(--tg-theme-link-color, var(--accent));
+    --sep: rgba(127,127,127,.18);
+    --chip: rgba(127,127,127,.13);
+    --ok: #22c55e; --mid: #f59e0b; --no: #ef4444; --info: #3aa0ff;
+    --r: 14px;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --fb-bg: #f1f3f7; --fb-card: #ffffff; --fb-text: #0f172a; --fb-hint: #6b7280; --fb-accent: #2481cc; }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--text); }
+  body {
+    font: 14px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    padding-bottom: calc(76px + var(--safe-b));
+    overscroll-behavior-y: none;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  input, select { font: inherit; color: var(--text); }
+  .hidden { display: none !important; }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
+  /* ---------- Sarlavha ---------- */
+  .appbar { display: flex; align-items: center; gap: 10px; padding: 12px 14px 6px; }
+  .appbar .logo { width: 34px; height: 34px; border-radius: 10px; background: var(--accent); color: var(--on-accent);
+    display: grid; place-items: center; font-size: 18px; flex: none; }
+  .appbar .ttl { flex: 1; min-width: 0; }
+  .appbar h1 { font-size: 17px; font-weight: 750; letter-spacing: -.2px; }
+  .appbar p { font-size: 12px; color: var(--hint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .icon-btn { height: 32px; min-width: 32px; padding: 0 10px; border-radius: 16px; background: var(--card);
+    font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+  .icon-btn:active { opacity: .6; }
 
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      padding: 14px;
-      padding-bottom: 30px;
-    }
+  /* ---------- Katalog: yopishqoq yuqori qism ---------- */
+  .sticky { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 6px 14px 8px; }
+  .search { position: relative; }
+  .search input { width: 100%; height: 42px; border-radius: 12px; border: 1px solid transparent; background: var(--card);
+    padding: 0 38px 0 38px; outline: none; font-size: 15px; }
+  .search input:focus { border-color: var(--accent); }
+  .search .ico { position: absolute; left: 12px; top: 11px; font-size: 15px; opacity: .55; pointer-events: none; }
+  .search .clr { position: absolute; right: 6px; top: 6px; width: 30px; height: 30px; border-radius: 15px; color: var(--hint); font-size: 16px; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-top: 8px; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; height: 32px; padding: 0 12px; border-radius: 16px; background: var(--card); color: var(--text);
+    font-size: 13px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+  .chip small { color: var(--hint); font-weight: 600; font-size: 11px; }
+  .chip.on { background: var(--accent); color: var(--on-accent); }
+  .chip.on small { color: inherit; opacity: .75; }
+  .chip.sm { height: 28px; font-size: 12px; padding: 0 10px; background: var(--chip); }
+  .chip.sm.on { background: var(--accent); }
 
-    header {
-      margin-bottom: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+  .wrap { padding: 0 14px; }
+  .note { font-size: 12.5px; color: var(--hint); background: var(--card); border-radius: 12px; padding: 10px 12px; margin: 4px 0 8px; }
+  .filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0 8px; }
+  select { height: 38px; border-radius: 10px; border: 0; background: var(--card); padding: 0 10px; width: 100%; outline: none; font-size: 13px;
+    appearance: none; -webkit-appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--hint) 50%), linear-gradient(135deg, var(--hint) 50%, transparent 50%);
+    background-position: calc(100% - 15px) 17px, calc(100% - 10px) 17px; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 26px; }
 
-    .title-box h1 {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .title-box p {
-      font-size: 12px;
-      color: var(--hint);
-      margin-top: 2px;
-    }
+  .scorebox { background: var(--card); border-radius: var(--r); padding: 10px 12px; margin-bottom: 8px; }
+  .scorebox .row1 { display: flex; align-items: center; gap: 8px; }
+  .scorebox label { font-size: 13px; font-weight: 650; flex: 1; }
+  .scorebox input[type=number] { width: 76px; height: 32px; border-radius: 8px; border: 1px solid var(--sep); background: transparent;
+    text-align: center; font-weight: 700; outline: none; }
+  .scorebox input[type=range] { width: 100%; margin-top: 8px; accent-color: var(--accent); }
+  .scorebox .row2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; font-size: 12px; color: var(--hint); }
+  .switch { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text); font-weight: 600; }
+  .switch i { width: 34px; height: 20px; border-radius: 10px; background: var(--chip); position: relative; transition: .2s; }
+  .switch i::after { content: ""; position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; border-radius: 8px; background: #fff; transition: .2s; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+  .switch.on i { background: var(--ok); }
+  .switch.on i::after { left: 16px; }
 
-    .header-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+  .stats { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--hint); margin: 2px 2px 8px; }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 4px; margin-right: 5px; vertical-align: 1px; background: var(--hint); }
+  .dot.live { background: var(--ok); } .dot.cache, .dot.local { background: var(--mid); } .dot.offline { background: var(--no); }
+  .link-btn { color: var(--link); font-weight: 650; font-size: 12px; }
 
-    .lang-btn, .refresh-btn {
-      background: var(--card-bg);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
+  /* ---------- Kartalar ---------- */
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .card { background: var(--card); border-radius: var(--r); padding: 12px 12px 11px; position: relative; cursor: pointer; transition: transform .08s; }
+  .card:active { transform: scale(.985); }
+  .c-head { display: flex; gap: 8px; align-items: flex-start; }
+  .c-title { flex: 1; font-size: 15px; font-weight: 680; line-height: 1.3; letter-spacing: -.1px; }
+  .c-line { color: var(--link); font-size: 13px; font-weight: 600; margin-top: 3px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .tag { font-size: 11.5px; font-weight: 600; color: var(--hint); background: var(--chip); padding: 3px 8px; border-radius: 7px; }
+  .tag.priv { color: #a78bfa; background: rgba(167,139,250,.14); }
+  .tag.path { color: var(--info); background: rgba(58,160,255,.13); }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .pill { font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 8px; }
+  .pill.g { color: var(--ok); background: rgba(34,197,94,.13); }
+  .pill.k { color: var(--mid); background: rgba(245,158,11,.13); }
+  .pill.n { color: var(--info); background: rgba(58,160,255,.12); }
+  .ch { font-size: 12px; font-weight: 750; padding: 4px 9px; border-radius: 8px; margin-left: auto; }
+  .ch.ok { background: var(--ok); color: #fff; } .ch.mid { background: var(--mid); color: #1f1300; } .ch.no { background: rgba(239,68,68,.14); color: var(--no); }
+  .c-foot { font-size: 12.5px; color: var(--hint); margin-top: 8px; }
+  .fav { width: 32px; height: 32px; margin: -6px -6px 0 0; border-radius: 16px; font-size: 19px; line-height: 32px; color: var(--hint); flex: none; }
+  .fav.on { color: #fbbf24; }
+  .fav:active { transform: scale(.85); }
+  .cmpbox { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--hint); flex: none; margin-top: 1px; display: grid; place-items: center; font-size: 13px; color: #fff; }
+  .cmpbox.on { background: var(--accent); border-color: var(--accent); }
 
-    .search-box {
-      margin-bottom: 12px;
-    }
-    .search-box input {
-      width: 100%;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 11px 14px;
-      color: var(--text);
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .search-box input:focus {
-      border-color: var(--accent);
-    }
+  .empty { text-align: center; padding: 34px 16px; color: var(--hint); }
+  .empty b { display: block; font-size: 34px; margin-bottom: 6px; }
+  .empty .btn { margin-top: 12px; }
+  .skel { height: 104px; border-radius: var(--r); background: linear-gradient(90deg, var(--card) 0%, var(--chip) 50%, var(--card) 100%);
+    background-size: 200% 100%; animation: sh 1.2s infinite linear; }
+  @keyframes sh { to { background-position: -200% 0; } }
+  .more { text-align: center; padding: 14px; color: var(--hint); font-size: 12px; }
 
-    .tabs-scroll {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 10px;
-      margin-bottom: 8px;
-      scrollbar-width: none;
-    }
-    .tabs-scroll::-webkit-scrollbar { display: none; }
+  /* ---------- Tugmalar ---------- */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 16px; border-radius: 12px;
+    background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 14.5px; }
+  .btn.sec { background: var(--chip); color: var(--text); }
+  .btn.block { width: 100%; }
+  .btn:active { opacity: .75; }
+  .btn[disabled] { opacity: .4; pointer-events: none; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+  .actions .btn { height: 42px; font-size: 13.5px; }
 
-    .tab-pill {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      color: var(--hint);
-      padding: 7px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      white-space: nowrap;
-      cursor: pointer;
-    }
-    .tab-pill.active {
-      background: var(--accent);
-      color: var(--accent-text);
-      border-color: var(--accent);
-    }
+  /* ---------- Pastki menyu ---------- */
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(4, 1fr);
+    background: var(--card); border-top: 1px solid var(--sep); padding: 6px 6px calc(6px + var(--safe-b)); }
+  .tabbar button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; color: var(--hint); font-size: 10.5px; font-weight: 650; position: relative; }
+  .tabbar button .i { font-size: 20px; line-height: 24px; filter: grayscale(1); opacity: .75; }
+  .tabbar button.on { color: var(--accent); }
+  .tabbar button.on .i { filter: none; opacity: 1; }
+  .badge { position: absolute; top: 0; left: calc(50% + 6px); min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--no); color: #fff; font-size: 10px; font-weight: 800; line-height: 17px; }
 
-    .filter-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    select {
-      background: var(--card-bg);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 9px 12px;
-      font-size: 13px;
-      outline: none;
-      width: 100%;
-    }
+  /* ---------- Pastdan chiquvchi oyna ---------- */
+  .sheet { position: fixed; inset: 0; z-index: 40; visibility: hidden; }
+  .sheet .bd { position: absolute; inset: 0; background: rgba(0,0,0,.45); opacity: 0; transition: opacity .2s; }
+  .sheet .panel { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90vh; overflow-y: auto; background: var(--bg);
+    border-radius: 18px 18px 0 0; padding: 8px 14px calc(18px + var(--safe-b)); transform: translateY(100%); transition: transform .25s cubic-bezier(.2,.8,.2,1); overscroll-behavior: contain; }
+  .sheet.open { visibility: visible; }
+  .sheet.open .bd { opacity: 1; }
+  .sheet.open .panel { transform: none; }
+  .grab { width: 38px; height: 5px; border-radius: 3px; background: var(--sep); margin: 0 auto 10px; }
+  .sh-head { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+  .sh-head h2 { flex: 1; font-size: 18px; font-weight: 750; line-height: 1.25; letter-spacing: -.2px; }
+  .sh-head .x { width: 30px; height: 30px; border-radius: 15px; background: var(--chip); color: var(--hint); font-size: 15px; flex: none; }
+  .sec { background: var(--card); border-radius: var(--r); padding: 12px; margin-top: 10px; }
+  .sec h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--hint); font-weight: 700; margin-bottom: 8px; }
+  .kv { display: flex; gap: 10px; padding: 7px 0; border-top: 1px solid var(--sep); font-size: 13.5px; }
+  .kv:first-of-type { border-top: 0; padding-top: 0; }
+  .kv span:first-child { color: var(--hint); flex: 0 0 38%; }
+  .kv span:last-child { flex: 1; word-break: break-word; }
+  .ul { list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+  .ul li { padding-left: 14px; position: relative; }
+  .ul li::before { content: ""; position: absolute; left: 2px; top: 8px; width: 5px; height: 5px; border-radius: 3px; background: var(--accent); }
+  .big-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bs { border-radius: 12px; padding: 10px; text-align: center; }
+  .bs b { display: block; font-size: 22px; font-weight: 800; letter-spacing: -.5px; }
+  .bs span { font-size: 12px; font-weight: 650; }
+  .bs.g { background: rgba(34,197,94,.13); color: var(--ok); } .bs.k { background: rgba(245,158,11,.13); color: var(--mid); }
+  .verdict { margin-top: 8px; padding: 9px 11px; border-radius: 10px; font-size: 13px; font-weight: 600; }
+  .verdict.ok { background: rgba(34,197,94,.13); color: var(--ok); } .verdict.mid { background: rgba(245,158,11,.13); color: var(--mid); } .verdict.no { background: rgba(239,68,68,.12); color: var(--no); }
 
-    .score-slider-box {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 14px;
-      margin-bottom: 14px;
-    }
-    .score-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    .score-val {
-      color: var(--accent);
-      font-weight: 700;
-    }
-    .score-slider-box input[type="range"] {
-      width: 100%;
-      accent-color: var(--accent);
-    }
+  /* Taqqoslash jadvali */
+  .cmp { overflow-x: auto; margin-top: 6px; }
+  .cmp table { border-collapse: separate; border-spacing: 0; min-width: 100%; font-size: 13px; }
+  .cmp th, .cmp td { padding: 9px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--sep); min-width: 140px; background: var(--card); }
+  .cmp th { font-weight: 750; font-size: 13px; }
+  .cmp td:first-child, .cmp th:first-child { position: sticky; left: 0; min-width: 96px; max-width: 110px; color: var(--hint); font-weight: 600; z-index: 1; }
+  .cmp .best { color: var(--ok); font-weight: 750; }
 
-    .stats-info {
-      font-size: 12px;
-      color: var(--hint);
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+  /* ---------- Kalkulyator ---------- */
+  .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--chip); border-radius: 11px; padding: 3px; margin: 6px 0 10px; }
+  .seg button { height: 34px; border-radius: 9px; font-weight: 700; font-size: 13px; color: var(--hint); }
+  .seg button.on { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+  .total { background: var(--card); border-radius: var(--r); padding: 16px; text-align: center; }
+  .total b { font-size: 40px; font-weight: 800; letter-spacing: -1.5px; }
+  .total small { font-size: 16px; color: var(--hint); font-weight: 700; }
+  .bar { height: 8px; border-radius: 4px; background: var(--chip); overflow: hidden; margin-top: 10px; }
+  .bar i { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width .2s; }
+  .reach { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .reach div { border-radius: 10px; padding: 8px; font-size: 12px; font-weight: 650; }
+  .reach div b { display: block; font-size: 20px; }
+  .reach .g { background: rgba(34,197,94,.13); color: var(--ok); } .reach .k { background: rgba(245,158,11,.13); color: var(--mid); }
+  .field { background: var(--card); border-radius: var(--r); padding: 4px 12px; margin-top: 8px; }
+  .frow { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--sep); }
+  .frow:first-child { border-top: 0; }
+  .frow .lb { flex: 1; min-width: 0; }
+  .frow .lb div { font-size: 14px; font-weight: 600; }
+  .frow .lb small { font-size: 11.5px; color: var(--hint); }
+  .step { display: flex; align-items: center; gap: 4px; }
+  .step button { width: 32px; height: 32px; border-radius: 10px; background: var(--chip); font-size: 18px; font-weight: 700; }
+  .step input { width: 44px; height: 32px; border: 0; background: transparent; text-align: center; font-weight: 750; font-size: 16px; outline: none; }
+  .frow .pts { width: 48px; text-align: right; font-weight: 750; color: var(--link); font-size: 13px; }
 
-    .cards-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+  /* ---------- Muddatlar ---------- */
+  .hero { background: var(--accent); color: var(--on-accent); border-radius: var(--r); padding: 14px; margin: 4px 0 4px; }
+  .hero small { opacity: .85; font-size: 12px; font-weight: 650; }
+  .hero b { display: block; font-size: 16px; margin: 3px 0 2px; }
+  .hero .cnt { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+  .ev { background: var(--card); border-radius: var(--r); padding: 12px; }
+  .ev.past { opacity: .55; }
+  .ev .top { display: flex; gap: 8px; align-items: flex-start; }
+  .ev .top b { flex: 1; font-size: 14.5px; font-weight: 680; line-height: 1.3; }
+  .st { font-size: 11.5px; font-weight: 750; padding: 3px 8px; border-radius: 7px; white-space: nowrap; }
+  .st.now { background: rgba(34,197,94,.14); color: var(--ok); } .st.soon { background: rgba(58,160,255,.13); color: var(--info); } .st.past { background: var(--chip); color: var(--hint); }
+  .ev .dates { font-size: 12.5px; color: var(--hint); margin-top: 5px; }
+  .ev .iz { font-size: 12.5px; margin-top: 6px; }
+  .ev .bar { height: 5px; margin-top: 8px; } .ev .bar i { background: var(--ok); }
 
-    .otm-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-    }
-
-    .card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .otm-name {
-      font-size: 15px;
-      font-weight: 700;
-      line-height: 1.35;
-      color: #fff;
-    }
-    .badge-viloyat {
-      background: #334155;
-      color: #cbd5e1;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 6px;
-      white-space: nowrap;
-    }
-
-    .otm-field {
-      font-size: 13px;
-      color: var(--accent);
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-
-    .scores-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    .score-pill {
-      flex: 1;
-      padding: 7px 8px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      text-align: center;
-    }
-    .pill-grant {
-      background: rgba(34, 197, 94, 0.15);
-      color: var(--grant-color);
-      border: 1px solid rgba(34, 197, 94, 0.35);
-    }
-    .pill-kont {
-      background: rgba(245, 158, 11, 0.15);
-      color: var(--kont-color);
-      border: 1px solid rgba(245, 158, 11, 0.35);
-    }
-
-    .card-meta {
-      font-size: 12px;
-      color: var(--hint);
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      border-top: 1px solid #2d3748;
-      padding-top: 8px;
-      margin-bottom: 10px;
-    }
-    .card-meta div {
-      display: flex;
-      justify-content: space-between;
-    }
-
-    /* Navigator Tugmasi */
-    .nav-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      width: 100%;
-      background: rgba(6, 182, 212, 0.15);
-      color: var(--nav-color);
-      border: 1px solid rgba(6, 182, 212, 0.4);
-      padding: 9px 12px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 700;
-      text-decoration: none;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .nav-btn:active {
-      background: rgba(6, 182, 212, 0.3);
-    }
-  </style>
+  .cmpbar { position: fixed; left: 14px; right: 14px; bottom: calc(70px + var(--safe-b)); z-index: 25; }
+  .toast { position: fixed; left: 50%; bottom: calc(86px + var(--safe-b)); transform: translateX(-50%) translateY(20px); opacity: 0;
+    background: rgba(20,20,20,.88); color: #fff; padding: 9px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; transition: .2s; z-index: 60; pointer-events: none; max-width: 86vw; text-align: center; }
+  .toast.show { opacity: 1; transform: translateX(-50%); }
+  h4.grp { font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--hint); margin: 14px 2px 6px; font-weight: 700; }
+</style>
 </head>
 <body>
-
-  <header>
-    <div class="title-box">
-      <h1>🎓 Career Map</h1>
-      <p id="sub_title">OTMlar va Navigator</p>
-    </div>
-    <div class="header-actions">
-      <button class="refresh-btn" onclick="fetchData()" title="Yangilash">🔄</button>
-      <button class="lang-btn" onclick="toggleLang()" id="lang_btn">RU</button>
-    </div>
+  <header class="appbar">
+    <div class="logo">🎓</div>
+    <div class="ttl"><h1>Career Map <small style="font-size:11px;color:var(--hint);font-weight:600">v2.0</small></h1><p id="subtitle"></p></div>
+    <button class="icon-btn" data-act="refresh" aria-label="refresh">🔄</button>
+    <button class="icon-btn" data-act="lang" id="lang_btn">RU</button>
   </header>
 
-  <div class="search-box">
-    <input type="text" id="search_input" placeholder="🔍 Qidiruv (TATU, Dasturchi, Shifokor...)" oninput="applyFilters()">
-  </div>
-
-  <div class="tabs-scroll" id="tabs_container"></div>
-
-  <div class="filter-grid">
-    <select id="viloyat_select" onchange="applyFilters()">
-      <option value="">Barcha hududlar</option>
-    </select>
-    <select id="sort_select" onchange="applyFilters()">
-      <option value="default">Tartiblash (Standart)</option>
-      <option value="grant_desc">Grant ball: Yuqoridan</option>
-      <option value="grant_asc">Grant ball: Pastdan</option>
-    </select>
-  </div>
-
-  <div class="score-slider-box">
-    <div class="score-header">
-      <span id="score_label">🎯 Ball bo'yicha filtrlash:</span>
-      <span class="score-val" id="score_display">Barchasi</span>
+  <!-- ===== Katalog ===== -->
+  <section id="v-catalog" class="view">
+    <div class="sticky">
+      <div class="search">
+        <span class="ico">🔍</span>
+        <input id="q" type="search" autocomplete="off" enterkeyhint="search">
+        <button class="clr hidden" data-act="clear-q" aria-label="clear">✕</button>
+      </div>
+      <div class="chips" id="kinds"></div>
     </div>
-    <input type="range" id="score_slider" min="50" max="189" value="0" step="0.5" oninput="onScoreChange(this.value)">
-  </div>
-
-  <div class="stats-info">
-    <span id="stats_info">Yuklanmoqda...</span>
-    <span id="sync_status" style="font-size: 11px; color: var(--grant-color);"></span>
-  </div>
-
-  <div class="cards-container" id="cards_list"></div>
-
-  <script>
-    const tg = window.Telegram?.WebApp;
-    if (tg) { tg.expand(); tg.ready(); }
-
-    const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTIkHNkexCIoeeV-Alx7LD5r5ZzM5S_xQH4NZOjH4HstjoRl0Q8U4K57quOK6vHnLJG-n9MEUhYa0QB/pub?gid=0&single=true&output=csv";
-
-    let DATA = [];
-    let currentLang = 'uz';
-    let selectedSoha = 'ALL';
-    let userScore = 0;
-
-    // 🧭 NAVIGATOR: Yandex Maps & Google Maps orqali OTM lokatsiyasini ochish
-    function openNavigator(otmName, city) {
-      const query = encodeURIComponent(`${otmName} ${city} Uzbekistan`);
-      const navUrl = `https://yandex.com/maps/?text=${query}`;
-      if (tg && tg.openLink) {
-        tg.openLink(navUrl);
-      } else {
-        window.open(navUrl, '_blank');
-      }
-    }
-
-    function parseCSV(text) {
-      const lines = text.trim().split(/\r?\n/);
-      if (lines.length < 2) return [];
-      const parseRow = (line) => {
-        const res = []; let cur = ''; let inQ = false;
-        for (let i = 0; i < line.length; i++) {
-          if (line[i] === '"') inQ = !inQ;
-          else if (line[i] === ',' && !inQ) { res.push(cur.trim()); cur = ''; }
-          else cur += line[i];
-        }
-        res.push(cur.trim());
-        return res;
-      };
-      const headers = parseRow(lines[0]);
-      return lines.slice(1).filter(l => l.trim()).map(l => {
-        const vals = parseRow(l);
-        const obj = {};
-        headers.forEach((h, i) => obj[h] = (vals[i] || '').replace(/^"|"$/g, ''));
-        return obj;
-      });
-    }
-
-    async function fetchData() {
-      const syncStatus = document.getElementById('sync_status');
-      syncStatus.innerText = "⏳ Yuklanmoqda...";
-      try {
-        if (!GOOGLE_SHEET_CSV_URL.includes("PLACEHOLDER")) {
-          const res = await fetch(`${GOOGLE_SHEET_CSV_URL}&t=${Date.now()}`);
-          DATA = parseCSV(await res.text());
-          syncStatus.innerText = "✅ Jonli ulandi";
-        } else { throw new Error(); }
-      } catch {
-        syncStatus.innerText = "⚡ Lokal baza";
-        DATA = [
-          { soha: "IT", kasb: "Dasturchi", viloyat: "Toshkent", otm: "Toshkent axborot texnologiyalari universiteti (TATU)", yonalish: "Dasturiy injiniring", grant_bal: "165.5", kontrakt_bal: "132.4", fanlar: "Matematika, Fizika", sertifikat: "Ingliz tili B2", kontrakt_narx: "17.2 mln so'm" },
-          { soha: "Tibbiyot", kasb: "Shifokor", viloyat: "Toshkent", otm: "Toshkent tibbiyot akademiyasi (TTA)", yonalish: "Davolash ishi", grant_bal: "178.5", kontrakt_bal: "145.2", fanlar: "Biologiya, Kimyo", sertifikat: "Biologiya / Kimyo (A/A+)", kontrakt_narx: "19.8 mln so'm" },
-          { soha: "Huquq", kasb: "Huquqshunos", viloyat: "Toshkent", otm: "Toshkent davlat yuridik universiteti (TDYU)", yonalish: "Yurisprudensiya", grant_bal: "181.2", kontrakt_bal: "149.6", fanlar: "Tarix, Chet tili", sertifikat: "Chet tili B2", kontrakt_narx: "22.5 mln so'm" },
-          { soha: "San'at", kasb: "Aktyor", viloyat: "Farg'ona", otm: "O'zDSMI Farg'ona mintaqaviy filiali", yonalish: "Aktyorlik san'ati", grant_bal: "136.0", kontrakt_bal: "102.0", fanlar: "Ijodiy sinovlar", sertifikat: "Talab qilinmaydi", kontrakt_narx: "13.5 mln so'm" },
-          { soha: "Aniq fanlar", kasb: "Matematik", viloyat: "Samarqand", otm: "Samarqand davlat universiteti (SamDU)", yonalish: "Amaliy matematika", grant_bal: "158.4", kontrakt_bal: "124.2", fanlar: "Matematika, Fizika", sertifikat: "Matematika sertifikat", kontrakt_narx: "15.0 mln so'm" }
-        ];
-      }
-      initTabs();
-      applyFilters();
-    }
-
-    function initTabs() {
-      const box = document.getElementById('tabs_container');
-      const sohalar = [...new Set(DATA.map(d => d.soha))].filter(Boolean);
-      box.innerHTML = `<button class="tab-pill ${selectedSoha==='ALL'?'active':''}" onclick="selectTab('ALL')">⭐ Barchasi</button>` +
-        sohalar.map(s => `<button class="tab-pill ${selectedSoha===s?'active':''}" onclick="selectTab('${s}')">${s}</button>`).join('');
-
-      const viloyatlar = [...new Set(DATA.map(d => d.viloyat))].filter(Boolean).sort();
-      document.getElementById('viloyat_select').innerHTML = '<option value="">📍 Barcha hududlar</option>' +
-        viloyatlar.map(v => `<option value="${v}">${v}</option>`).join('');
-    }
-
-    function selectTab(s) { selectedSoha = s; initTabs(); applyFilters(); }
-
-    function onScoreChange(val) {
-      userScore = parseFloat(val);
-      document.getElementById('score_display').innerText = userScore > 50 ? `${userScore} ball` : 'Barchasi';
-      applyFilters();
-    }
-
-    function toggleLang() {
-      currentLang = currentLang === 'uz' ? 'ru' : 'uz';
-      document.getElementById('lang_btn').innerText = currentLang === 'uz' ? 'RU' : 'UZ';
-      applyFilters();
-    }
-
-    function applyFilters() {
-      const q = document.getElementById('search_input').value.trim().toLowerCase();
-      const v = document.getElementById('viloyat_select').value;
-      const sort = document.getElementById('sort_select').value;
-
-      let list = DATA.filter(item => {
-        if (selectedSoha !== 'ALL' && item.soha !== selectedSoha) return false;
-        if (v && item.viloyat !== v) return false;
-        if (q) {
-          const match = (item.otm||'').toLowerCase().includes(q) ||
-                        (item.yonalish||'').toLowerCase().includes(q) ||
-                        (item.kasb||'').toLowerCase().includes(q);
-          if (!match) return false;
-        }
-        if (userScore > 50) {
-          const kBal = parseFloat(item.kontrakt_bal);
-          if (!isNaN(kBal) && userScore < kBal) return false;
-        }
-        return true;
-      });
-
-      if (sort === 'grant_desc') list.sort((a,b) => (parseFloat(b.grant_bal)||0) - (parseFloat(a.grant_bal)||0));
-      if (sort === 'grant_asc') list.sort((a,b) => (parseFloat(a.grant_bal)||0) - (parseFloat(b.grant_bal)||0));
-
-      renderCards(list);
-    }
-
-    function renderCards(list) {
-      const cont = document.getElementById('cards_list');
-      const stats = document.getElementById('stats_info');
-      stats.innerText = `Topildi: ${list.length} ta OTM`;
-
-      if (!list.length) { cont.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8;">Hech narsa topilmadi 😔</div>'; return; }
-
-      cont.innerHTML = list.map(item => `
-        <div class="otm-card">
-          <div class="card-top">
-            <div class="otm-name">🏛 ${item.otm}</div>
-            <span class="badge-viloyat">${item.viloyat}</span>
-          </div>
-          <div class="otm-field">📚 ${item.yonalish}</div>
-          <div class="scores-row">
-            <div class="score-pill pill-grant">🎯 Grant: ${item.grant_bal}</div>
-            <div class="score-pill pill-kont">💳 Kontrakt: ${item.kontrakt_bal}</div>
-          </div>
-          <div class="card-meta">
-            <div><span>📝 Fanlar:</span> <span>${item.fanlar}</span></div>
-            <div><span>📜 Sertifikat:</span> <span>${item.sertifikat}</span></div>
-            <div><span>💰 Kontrakt narxi:</span> <span>${item.kontrakt_narx}</span></div>
-          </div>
-          <button class="nav-btn" onclick="openNavigator('${item.otm.replace(/'/g, "\\'")}', '${item.viloyat}')">
-            🧭 Navigator orqali xaritada ko'rish
-          </button>
+    <div class="wrap">
+      <div id="kind_note"></div>
+      <div class="chips" id="subs" style="padding-top:0;margin-bottom:2px"></div>
+      <div class="filters">
+        <select id="region"></select>
+        <select id="sort"></select>
+      </div>
+      <div class="scorebox hidden" id="scorebox">
+        <div class="row1">
+          <label for="score_n" id="score_lbl"></label>
+          <input id="score_n" type="number" inputmode="decimal" min="0" max="189" step="0.1" placeholder="—">
         </div>
-      `).join('');
-    }
+        <input id="score_r" type="range" min="0" max="189" step="0.5" value="0">
+        <div class="row2">
+          <button class="switch" data-act="reach" id="reach_sw"><i></i><span id="reach_lbl"></span></button>
+          <button class="link-btn" data-view="calc" id="to_calc"></button>
+        </div>
+      </div>
+      <div class="stats"><span id="found"></span><span id="sync"></span></div>
+      <div class="list" id="list"></div>
+      <div class="more" id="sentinel"></div>
+    </div>
+  </section>
 
-    fetchData();
-  </script>
+  <!-- ===== Kalkulyator ===== -->
+  <section id="v-calc" class="view hidden"><div class="wrap" id="calc"></div></section>
+
+  <!-- ===== Saqlanganlar ===== -->
+  <section id="v-fav" class="view hidden"><div class="wrap" id="favs"></div></section>
+
+  <!-- ===== Muddatlar ===== -->
+  <section id="v-dates" class="view hidden"><div class="wrap" id="dates"></div></section>
+
+  <div class="cmpbar hidden" id="cmpbar"><button class="btn block" data-act="cmp-run" id="cmp_run"></button></div>
+
+  <nav class="tabbar" id="tabbar"></nav>
+
+  <div class="sheet" id="sheet" aria-hidden="true">
+    <div class="bd" data-act="close"></div>
+    <div class="panel" id="panel"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+  // Xato bo'lsa ekranda ko'rsatamiz (eski Telegram/WebView'da nima buzilganini bilish uchun)
+  window.addEventListener("error", function (e) {
+    var d = document.getElementById("fatal");
+    if (!d) { d = document.createElement("div"); d.id = "fatal";
+      d.style.cssText = "position:fixed;left:10px;right:10px;top:10px;z-index:99;background:#b91c1c;color:#fff;padding:10px 12px;border-radius:10px;font:12px/1.4 monospace;white-space:pre-wrap";
+      document.body.appendChild(d); }
+    d.textContent = "Career Map v2.0 xato:\n" + (e.message || e) + (e.lineno ? " (qator " + e.lineno + ")" : "") + "\n" + navigator.userAgent;
+  });
+</script>
+<script>
+"use strict";
+/* =====================================================================
+   SOZLAMALAR
+   ===================================================================== */
+const CONFIG = {
+  // BotFather → /newapp orqali olingan havola, masalan: "https://t.me/CareerMapBot/app".
+  // To'ldirilsa, "Ulashish" tugmasi to'g'ridan-to'g'ri shu kartani ochadigan havola beradi.
+  BOT_APP_LINK: "",
+};
+// Google Sheets: Fayl → Ulashish → Internetda chop etish → varaq → CSV.
+// url bo'sh bo'lsa yoki ishlamasa, index.html yonidagi local fayllar o'qiladi.
+const SHEETS = {
+  otm:       { url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTIkHNkexCIoeeV-Alx7LD5r5ZzM5S_xQH4NZOjH4HstjoRl0Q8U4K57quOK6vHnLJG-n9MEUhYa0QB/pub?gid=0&single=true&output=csv",
+               local: ["data_cache.csv", "data.csv"], need: "otm" },
+  nodavlat:  { url: "", local: ["nodavlat_otm.csv"], need: "nomi" },
+  akademiya: { url: "", local: ["akademiya.csv"], need: "nomi" },
+  litsey:    { url: "", local: ["litsey.csv"], need: "nomi" },
+  texnikum:  { url: "", local: ["texnikum.csv"], need: "nomi" },
+  muddat:    { url: "", local: ["muddatlar.csv"], need: "id" },
+};
+const KINDS = ["otm", "nodavlat", "akademiya", "litsey", "texnikum"];
+const PAGE = 30;
+
+/* =====================================================================
+   MATNLAR
+   ===================================================================== */
+const I18N = {
+  uz: {
+    k_otm: "🎓 OTM", k_nodavlat: "🏢 Xususiy OTM", k_akademiya: "🏛 Akademiya", k_litsey: "🏫 Litsey", k_texnikum: "🛠 Texnikum",
+    v_catalog: "Katalog", v_calc: "Kalkulyator", v_fav: "Saqlangan", v_dates: "Muddatlar",
+    sub_catalog: "OTM, akademiya, litsey va texnikumlar", sub_calc: "DTM va litsey balini hisoblang", sub_fav: "Saqlanganlar va taqqoslash", sub_dates: "Qabul muddatlari",
+    search: "Nomi, yo'nalish yoki kasb (TATU, shifokor...)", all: "Barchasi", regions: "📍 Barcha hududlar",
+    s_default: "↕ Standart tartib", s_chance: "🎯 Imkoniyatim bo'yicha", s_grant_desc: "Grant ball: yuqoridan", s_grant_asc: "Grant ball: pastdan",
+    s_name: "Nomi (A–Z)", s_price: "Kontrakt narxi: arzonidan", s_kvota: "Kvota: ko'pidan",
+    my_score: "🎯 Mening ballim", only_reach: "Faqat kira oladiganlarim", open_calc: "🧮 Hisoblash",
+    found: "{n} ta natija", none: "Hech narsa topilmadi", none_hint: "So'zni qisqartiring yoki filtrlarni tozalang.", clear: "Filtrlarni tozalash",
+    live: "Jonli", cache: "Saqlangan nusxa", local: "Lokal fayl", offline: "Ulanmadi", loading: "Yuklanmoqda…",
+    grant: "Grant", kont: "Kontrakt", ball: "ball", places: "o'rin", kvota: "Kvota",
+    ch_grant: "Grant ✓", ch_kont: "Kontrakt ✓", ch_need: "−{d}",
+    v_ok: "✅ Ballingiz ({s}) grant chegarasidan {d} ball yuqori.", v_ok0: "✅ Ballingiz ({s}) aynan grant chegarasida — raqobat kuchli bo'ladi.", v_mid: "🟡 Kontraktga yetadi. Grantga {d} ball yetmaydi.", v_no: "🔴 Kontraktga ham {d} ball yetmaydi.",
+    priv: "Xususiy", path: "➡️ OTMga 2-kurs",
+    g_otm: "🎓 OTM huzuridagi", g_iiv: "👮 IIV", g_harbiy: "🎖 Harbiy",
+    b_9: "9-sinfdan keyin", b_11: "11-sinfdan keyin", b_otm2: "➡️ OTMga yo'li bor",
+    lit_note: "Akademik litseyga 9-sinfdan keyin test orqali kiriladi: 2 fan (20×3.1) + IQ (20×1.1) = 146 ball. Ariza: my.edu.uz",
+    tex_note: "9-sinf bitiruvchilari texnikumda to'liq davlat granti asosida o'qiydi. 11-sinfdan keyin grant yoki kontrakt. Ariza: my.edu.uz",
+    nod_note: "Xususiy OTMlar o'z imtihoni yoki DTM natijasi bilan qabul qiladi, kirish ballari e'lon qilinmaydi. Litsenziyani license.gov.uz da tekshiring.",
+    f_yonalish: "Yo'nalish", f_kasb: "Kasb", f_soha: "Soha", f_fanlar: "Fanlar", f_sert: "Sertifikat", f_narx: "Kontrakt narxi", f_qabul: "Qabul asosi",
+    f_kvota: "Kvota", f_max: "Maks. ball", f_otish: "O'tish bali", f_muddat: "Qabul muddati", f_portal: "Ariza", f_izoh: "Izoh", f_manba: "Manba",
+    f_yil: "Yangilangan", f_region: "Hudud", f_shakl: "Ta'lim shakli",
+    sec_scores: "O'tish ballari", sec_info: "Ma'lumot", sec_9: "9-sinf bazasida · to'liq grant", sec_11: "11-sinf bazasida", sec_otm2: "Bitirgach OTMga 2-kursdan (suhbat, kontrakt)",
+    sec_dirs: "Yo'nalishlar", kasblar: "Kasblar", mutax: "Mutaxassisliklar",
+    a_save: "☆ Saqlash", a_saved: "★ Saqlangan", a_map: "🧭 Xarita", a_share: "📤 Ulashish", a_portal: "🌐 Ariza topshirish", a_all_dirs: "🏛 Barcha yo'nalishlari ({n})",
+    t_saved: "⭐ Saqlandi", t_removed: "Olib tashlandi", t_copied: "📋 Nusxa olindi", t_updated: "✅ Ma'lumotlar yangilandi", t_cmp_max: "Ko'pi bilan 3 ta tanlang", t_cmp_kind: "Bir turdagilarni taqqoslang",
+    fav_empty: "Hali hech narsa saqlanmagan", fav_empty_hint: "Katalogdagi ☆ belgisini bosing — shu yerda paydo bo'ladi va barcha qurilmalaringizda saqlanadi.",
+    fav_gone: "Jadvalda endi yo'q", to_catalog: "🔍 Katalogga o'tish", cmp_mode: "⚖️ Taqqoslash", cmp_done: "Tayyor", cmp_run: "⚖️ Taqqoslash ({n})", cmp_title: "Taqqoslash", cmp_hint: "Bir turdagi 2–3 ta kartani tanlang.",
+    remove: "O'chirish",
+    c_otm: "🎓 OTM (DTM)", c_lit: "🏫 Akademik litsey", c_mand: "Majburiy fanlar", c_main: "Mutaxassislik fanlari",
+    c_ona: "Ona tili", c_mat: "Matematika", c_tar: "O'zbekiston tarixi", c_f1: "1-asosiy fan", c_f2: "2-asosiy fan", c_l1: "1-fan", c_l2: "2-fan", c_iq: "IQ (mantiqiy)",
+    c_q: "{n} savol × {k}", c_reach_g: "yo'nalishga grant", c_reach_k: "yo'nalishga kontrakt", c_go: "🎯 Mos yo'nalishlarni ko'rish", c_reset: "Tozalash",
+    c_note: "Milliy yoki xalqaro sertifikatingiz bo'lsa, tegishli fan bali BMBA qoidasi bo'yicha hisoblanadi. Natija 2026-yil o'tish ballari bilan solishtiriladi.",
+    c_lit_note: "Litseylarning o'tish ballari ochiq e'lon qilinmaydi (mandat my.edu.uz shaxsiy kabinetida). Kvota katta litseylarda raqobat odatda pastroq.",
+    c_lit_go: "🏫 Litseylar ro'yxati", c_lit_reach: "litseyning o'tish baliga yetadi",
+    d_all: "Barchasi", d_otm: "🎓 OTM", d_litsey: "🏫 Litsey", d_texnikum: "🛠 Texnikum", d_harbiy: "🎖 Harbiy",
+    d_next: "Eng yaqin muddat", d_now: "Davom etmoqda", d_left: "{d} kun qoldi", d_ends: "tugashiga {d} kun", d_today: "Bugun", d_past: "Tugagan",
+    d_starts: "boshlanishiga", d_approx: "taxminiy", d_open: "🌐 Ochish", d_remind: "🔔 Eslatma olish uchun botdagi «📅 Qabul muddatlari» bo'limida obuna bo'ling — bot 7 kun oldin, boshlangan kuni va tugashidan oldin xabar beradi.",
+    days: "kun", months: ["yan", "fev", "mar", "apr", "may", "iyun", "iyul", "avg", "sen", "okt", "noy", "dek"],
+  },
+  ru: {
+    k_otm: "🎓 Вузы", k_nodavlat: "🏢 Частные вузы", k_akademiya: "🏛 Академии", k_litsey: "🏫 Лицеи", k_texnikum: "🛠 Техникумы",
+    v_catalog: "Каталог", v_calc: "Калькулятор", v_fav: "Избранное", v_dates: "Сроки",
+    sub_catalog: "Вузы, академии, лицеи и техникумы", sub_calc: "Посчитайте балл DTM и лицея", sub_fav: "Избранное и сравнение", sub_dates: "Сроки приёма",
+    search: "Название, направление или профессия (ТУИТ, врач...)", all: "Все", regions: "📍 Все регионы",
+    s_default: "↕ Стандартно", s_chance: "🎯 По моим шансам", s_grant_desc: "Грант: по убыванию", s_grant_asc: "Грант: по возрастанию",
+    s_name: "Название (А–Я)", s_price: "Контракт: дешевле", s_kvota: "Квота: больше",
+    my_score: "🎯 Мой балл", only_reach: "Только куда прохожу", open_calc: "🧮 Посчитать",
+    found: "Найдено: {n}", none: "Ничего не найдено", none_hint: "Сократите запрос или сбросьте фильтры.", clear: "Сбросить фильтры",
+    live: "Онлайн", cache: "Сохранённая копия", local: "Локальный файл", offline: "Нет связи", loading: "Загрузка…",
+    grant: "Грант", kont: "Контракт", ball: "балл", places: "мест", kvota: "Квота",
+    ch_grant: "Грант ✓", ch_kont: "Контракт ✓", ch_need: "−{d}",
+    v_ok: "✅ Ваш балл ({s}) выше гранта на {d}.", v_ok0: "✅ Ваш балл ({s}) ровно на границе гранта — конкуренция будет высокой.", v_mid: "🟡 Проходите на контракт. До гранта не хватает {d}.", v_no: "🔴 До контракта не хватает {d}.",
+    priv: "Частный", path: "➡️ Вуз со 2 курса",
+    g_otm: "🎓 При вузах", g_iiv: "👮 МВД", g_harbiy: "🎖 Военные",
+    b_9: "После 9 класса", b_11: "После 11 класса", b_otm2: "➡️ Путь в вуз",
+    lit_note: "В академлицей поступают после 9 класса по тесту: 2 предмета (20×3.1) + IQ (20×1.1) = 146 баллов. Заявка: my.edu.uz",
+    tex_note: "Выпускники 9 класса учатся в техникуме на полном госгранте. После 11 класса — грант или контракт. Заявка: my.edu.uz",
+    nod_note: "Частные вузы принимают по своему экзамену или по результатам DTM, проходные баллы не публикуются. Лицензию проверьте на license.gov.uz.",
+    f_yonalish: "Направление", f_kasb: "Профессия", f_soha: "Сфера", f_fanlar: "Предметы", f_sert: "Сертификат", f_narx: "Стоимость", f_qabul: "Основа приёма",
+    f_kvota: "Квота", f_max: "Макс. балл", f_otish: "Проходной", f_muddat: "Сроки приёма", f_portal: "Заявка", f_izoh: "Примечание", f_manba: "Источник",
+    f_yil: "Обновлено", f_region: "Регион", f_shakl: "Форма обучения",
+    sec_scores: "Проходные баллы", sec_info: "Информация", sec_9: "На базе 9 класса · полный грант", sec_11: "На базе 11 класса", sec_otm2: "Затем на 2 курс вуза (собеседование, контракт)",
+    sec_dirs: "Направления", kasblar: "Профессии", mutax: "Специальности",
+    a_save: "☆ Сохранить", a_saved: "★ Сохранено", a_map: "🧭 Карта", a_share: "📤 Поделиться", a_portal: "🌐 Подать заявку", a_all_dirs: "🏛 Все направления ({n})",
+    t_saved: "⭐ Сохранено", t_removed: "Удалено", t_copied: "📋 Скопировано", t_updated: "✅ Данные обновлены", t_cmp_max: "Не больше 3", t_cmp_kind: "Сравнивайте один тип",
+    fav_empty: "Пока ничего не сохранено", fav_empty_hint: "Нажмите ☆ в каталоге — запись появится здесь и сохранится на всех ваших устройствах.",
+    fav_gone: "Больше нет в таблице", to_catalog: "🔍 В каталог", cmp_mode: "⚖️ Сравнить", cmp_done: "Готово", cmp_run: "⚖️ Сравнить ({n})", cmp_title: "Сравнение", cmp_hint: "Выберите 2–3 карточки одного типа.",
+    remove: "Удалить",
+    c_otm: "🎓 Вуз (DTM)", c_lit: "🏫 Академлицей", c_mand: "Обязательные предметы", c_main: "Профильные предметы",
+    c_ona: "Родной язык", c_mat: "Математика", c_tar: "История Узбекистана", c_f1: "1-й профильный", c_f2: "2-й профильный", c_l1: "1-й предмет", c_l2: "2-й предмет", c_iq: "IQ (логика)",
+    c_q: "{n} вопр. × {k}", c_reach_g: "направлений на грант", c_reach_k: "направлений на контракт", c_go: "🎯 Показать подходящие", c_reset: "Сбросить",
+    c_note: "Если есть национальный или международный сертификат, балл по предмету считается по правилам BMBA. Сравнение — с проходными баллами 2026 года.",
+    c_lit_note: "Проходные баллы лицеев открыто не публикуются (мандат в личном кабинете my.edu.uz). В лицеях с большой квотой конкурс обычно ниже.",
+    c_lit_go: "🏫 Список лицеев", c_lit_reach: "лицеев: проходите",
+    d_all: "Все", d_otm: "🎓 Вузы", d_litsey: "🏫 Лицеи", d_texnikum: "🛠 Техникумы", d_harbiy: "🎖 Военные",
+    d_next: "Ближайший срок", d_now: "Идёт приём", d_left: "через {d} дн.", d_ends: "до конца {d} дн.", d_today: "Сегодня", d_past: "Завершено",
+    d_starts: "до начала", d_approx: "примерно", d_open: "🌐 Открыть", d_remind: "🔔 Чтобы получать напоминания, подпишитесь в боте в разделе «📅 Сроки приёма» — бот напомнит за 7 дней, в день начала и перед окончанием.",
+    days: "дн.", months: ["янв", "фев", "мар", "апр", "мая", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"],
+  },
+};
+
+/* =====================================================================
+   YORDAMCHILAR
+   ===================================================================== */
+const tg = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData !== undefined ? window.Telegram.WebApp : null;
+const inTG = !!(tg && tg.initData);
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const num = x => { const v = parseFloat(String(x ?? "").replace(",", ".")); return isFinite(v) ? v : null; };
+const fmt = x => String(Math.round(x * 10) / 10);
+const isAll = v => ["", "barcha viloyatlar", "butun respublika"].includes(String(v || "").trim().toLowerCase());
+const splitList = s => String(s || "").split(/;\s*/).map(x => x.trim()).filter(Boolean);
+const href = p => !p ? "" : /^https?:\/\//.test(p) ? p : "https://" + String(p).replace(/^\/+/, "");
+let lang = "uz";
+const t = (k, vars) => { let s = I18N[lang][k] ?? I18N.uz[k] ?? k; if (vars) for (const v in vars) s = s.replace("{" + v + "}", vars[v]); return s; };
+const tr = (r, key) => (lang === "ru" && r[key + "_ru"]) ? r[key + "_ru"] : (r[key] || "");
+const haptic = (type = "select") => { try { if (!inTG || !tg.HapticFeedback) return;
+  if (type === "select") tg.HapticFeedback.selectionChanged(); else if (type === "ok") tg.HapticFeedback.notificationOccurred("success"); else tg.HapticFeedback.impactOccurred(type); } catch (e) {} };
+const lsGet = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+// Qidiruv uchun normallashtirish: kichik harf, kirill → lotin, apostroflarsiz
+const CYR = { а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"yo",ж:"j",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"x",ц:"ts",ч:"ch",ш:"sh",щ:"sh",ъ:"",ы:"i",ь:"",э:"e",ю:"yu",я:"ya",ў:"o",қ:"q",ғ:"g",ҳ:"h" };
+function norm(s) {
+  return String(s || "").toLowerCase().replace(/[а-яёўқғҳ]/g, c => CYR[c] ?? c)
+    .replace(/[‘’ʻʼ`'"«»“”]/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+}
+
+// SHA-1 (botdagi item_hash bilan bir xil identifikator olish uchun)
+function sha1(str) {
+  const b = new TextEncoder().encode(str), l = b.length, nb = (((l + 8) >> 6) + 1) * 16, w = new Uint32Array(nb);
+  for (let i = 0; i < l; i++) w[i >> 2] |= b[i] << (24 - (i % 4) * 8);
+  w[l >> 2] |= 0x80 << (24 - (l % 4) * 8); w[nb - 1] = l * 8;
+  const rol = (x, n) => ((x << n) | (x >>> (32 - n))) >>> 0, W = new Uint32Array(80);
+  let h0 = 0x67452301, h1 = 0xEFCDAB89, h2 = 0x98BADCFE, h3 = 0x10325476, h4 = 0xC3D2E1F0;
+  for (let i = 0; i < nb; i += 16) {
+    for (let j = 0; j < 16; j++) W[j] = w[i + j];
+    for (let j = 16; j < 80; j++) W[j] = rol(W[j - 3] ^ W[j - 8] ^ W[j - 14] ^ W[j - 16], 1);
+    let a = h0, bb = h1, c = h2, d = h3, e = h4;
+    for (let j = 0; j < 80; j++) {
+      let f, k;
+      if (j < 20) { f = (bb & c) | (~bb & d); k = 0x5A827999; }
+      else if (j < 40) { f = bb ^ c ^ d; k = 0x6ED9EBA1; }
+      else if (j < 60) { f = (bb & c) | (bb & d) | (c & d); k = 0x8F1BBCDC; }
+      else { f = bb ^ c ^ d; k = 0xCA62C1D6; }
+      const tmp = (rol(a, 5) + (f >>> 0) + e + k + W[j]) >>> 0;
+      e = d; d = c; c = rol(bb, 30); bb = a; a = tmp;
+    }
+    h0 = (h0 + a) >>> 0; h1 = (h1 + bb) >>> 0; h2 = (h2 + c) >>> 0; h3 = (h3 + d) >>> 0; h4 = (h4 + e) >>> 0;
+  }
+  return [h0, h1, h2, h3, h4].map(h => h.toString(16).padStart(8, "0")).join("");
+}
+
+// RFC 4180 CSV
+function parseCSV(text) {
+  text = text.replace(/^﻿/, "");
+  const rows = []; let row = [], cur = "", inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQ) { if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else inQ = false; } else cur += ch; }
+    else if (ch === '"') inQ = true;
+    else if (ch === ",") { row.push(cur); cur = ""; }
+    else if (ch === "\n" || ch === "\r") { if (ch === "\r" && text[i + 1] === "\n") i++; row.push(cur); rows.push(row); row = []; cur = ""; }
+    else cur += ch;
+  }
+  if (cur || row.length) { row.push(cur); rows.push(row); }
+  const header = (rows.shift() || []).map(h => h.trim());
+  return rows.filter(r => r.some(v => v.trim())).map(r => {
+    const o = {}; header.forEach((h, i) => { if (h && !(h in o)) o[h] = (r[i] || "").trim(); }); return o;
+  });
+}
+const parsePrice = s => { const m = String(s || "").replace(",", ".").match(/(\d+(?:\.\d+)?)/); return m ? parseFloat(m[1]) : null; };
+
+/* =====================================================================
+   HOLAT
+   ===================================================================== */
+const DEF = { view: "catalog", kind: "otm", sort: "default", region: "", sub: "ALL", base: "all", score: 0, reach: false,
+  calcMode: "otm", calc: { ona: 0, mat: 0, tar: 0, f1: 0, f2: 0, l1: 0, l2: 0, iq: 0 }, dTur: "all" };
+const S = Object.assign({}, DEF, lsGet("cm_state") || {});
+S.calc = Object.assign({}, DEF.calc, S.calc || {});
+if (!KINDS.includes(S.kind)) S.kind = "otm";
+if (!["catalog", "calc", "fav", "dates"].includes(S.view)) S.view = "catalog";
+let saveT; const save = () => { clearTimeout(saveT); saveT = setTimeout(() => lsSet("cm_state", S), 250); };
+
+const DB = {}, RAW = {}, STATUS = {}, LOAD = {}, BYID = {};
+let FAV = new Set(lsGet("cm_favs") || []);
+let cmpMode = false; const CMP = new Set();
+let query = "";
+let current = [], shown = 0;
+let sheetOpen = false;
+
+/* =====================================================================
+   MA'LUMOT YUKLASH (kesh → tarmoq)
+   ===================================================================== */
+function prep(kind, rows) {
+  if (kind === "muddat") return rows;
+  rows.forEach(r => {
+    r._k = kind;
+    r._name = kind === "otm" ? r.otm : r.nomi;
+    const raw = kind === "otm" ? `otm|${r.otm}|${r.yonalish}|${r.viloyat}` : `${kind}|${r.nomi}|${r.viloyat}`;
+    r._id = kind + ":" + sha1(raw).slice(0, 8);
+    r._all = isAll(r.viloyat);
+    r._g = num(r.grant_bal); r._kb = num(r.kontrakt_bal); r._ot = num(r.otish_bal);
+    r._price = parsePrice(r.kontrakt_narx); r._kv = num(r.kvota);
+    if (kind === "texnikum") { r._n9 = num(r.kvota_9) || 0; r._g11 = num(r.kvota_11_grant) || 0; r._k11 = num(r.kvota_11_kontrakt) || 0; }
+    if (kind === "litsey") {
+      const n = (r.nomi || "").toLowerCase();
+      r._grp = /ichki ishlar|iiv/.test(n) ? "iiv" : /harbiy|temurbek|chegarachi|gvardiya/.test(n) ? "harbiy" : "otm";
+    }
+    r._hay = norm([r._name, r.nomi_ru, r.yonalish, r.yonalish_ru, r.yonalish_11, r.otm_2kurs, r.kasb, r.kasb_ru, r.soha, r.soha_ru, r.shahar, r.viloyat, r.viloyat_ru].join(" "));
+    BYID[r._id] = r;
+  });
+  return rows;
+}
+function setRows(k, txt, status) { RAW[k] = txt; DB[k] = prep(k, parseCSV(txt)); STATUS[k] = status; }
+
+async function fetchText(k) {
+  const src = SHEETS[k];
+  const ok = txt => { const head = txt.replace(/^﻿/, "").split(/\r?\n/, 1)[0] || ""; return !/^\s*</.test(txt) && head.split(",").map(s => s.trim().replace(/"/g, "")).includes(src.need); };
+  if (src.url) {
+    try {
+      const res = await fetch(src.url + (src.url.includes("?") ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" });
+      if (res.ok) { const txt = await res.text(); if (ok(txt)) return { txt, status: "live" }; }
+    } catch (e) {}
+  }
+  for (const f of src.local) {
+    try { const res = await fetch(f, { cache: "no-cache" }); if (res.ok) { const txt = await res.text(); if (ok(txt)) return { txt, status: "local" }; } } catch (e) {}
+  }
+  throw new Error("load failed");
+}
+
+function loadKind(k, force = false) {
+  if (LOAD[k] && !force) return LOAD[k];
+  LOAD[k] = new Promise(resolve => {
+    let done = false; const finish = () => { if (!done) { done = true; resolve(); } };
+    if (!DB[k]) { const c = lsGet("cm_d_" + k); if (c && c.txt) { try { setRows(k, c.txt, "cache"); finish(); } catch (e) {} } }
+    fetchText(k).then(({ txt, status }) => {
+      const changed = txt !== RAW[k];
+      if (changed) { setRows(k, txt, status); lsSet("cm_d_" + k, { t: Date.now(), txt }); }
+      else STATUS[k] = status;
+      if (done && changed) onDataUpdate(k, force);
+      else if (force) toast(t("t_updated"));
+      finish(); renderSync();
+    }).catch(() => { if (!DB[k]) { DB[k] = []; STATUS[k] = "offline"; } finish(); renderSync(); });
+  });
+  return LOAD[k];
+}
+function onDataUpdate(k, manual) {
+  if (manual) toast(t("t_updated"));
+  if (S.view === "catalog" && k === S.kind) { renderControls(); renderResults(); }
+  else if (S.view === "fav") renderFav();
+  else if (S.view === "dates" && k === "muddat") renderDates();
+  else if (S.view === "calc") renderCalc();
+}
+
+/* =====================================================================
+   SEVIMLILAR (Telegram CloudStorage + localStorage)
+   ===================================================================== */
+const cloud = inTG && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast("6.9") ? tg.CloudStorage : null;
+function saveFav() {
+  const arr = [...FAV]; lsSet("cm_favs", arr);
+  if (cloud) try { cloud.setItem("favs", JSON.stringify(arr).slice(0, 4000)); } catch (e) {}
+  renderTabbar();
+}
+function initCloudFav() {
+  if (!cloud) return;
+  try {
+    cloud.getItem("favs", (err, val) => {
+      if (err || !val) { if (FAV.size) saveFav(); return; }
+      try { const arr = JSON.parse(val); if (Array.isArray(arr)) { FAV = new Set(arr); lsSet("cm_favs", arr); renderTabbar(); if (S.view === "fav") renderFav(); else if (S.view === "catalog") refreshStars(); } } catch (e) {}
+    });
+  } catch (e) {}
+}
+function toggleFav(id) {
+  if (FAV.has(id)) { FAV.delete(id); toast(t("t_removed")); haptic("light"); }
+  else { FAV.add(id); toast(t("t_saved")); haptic("ok"); }
+  saveFav(); refreshStars();
+}
+function refreshStars() {
+  document.querySelectorAll("[data-fav]").forEach(b => { const on = FAV.has(b.dataset.fav); b.classList.toggle("on", on); b.textContent = on ? "★" : "☆"; });
+  const sb = document.querySelector('[data-act="fav-sheet"]');
+  if (sb) sb.textContent = FAV.has(sb.dataset.id) ? t("a_saved") : t("a_save");
+}
+
+/* =====================================================================
+   IMKONIYAT (ball bo'yicha)
+   ===================================================================== */
+const scoreKind = k => (DB[k] || []).some(r => r._g !== null || r._kb !== null || r._ot !== null);
+const maxFor = k => k === "litsey" ? 146 : 189;
+function chance(r, s) {
+  if (!s) return null;
+  const g = r._g, k = r._kb ?? r._ot;
+  if (g === null && k === null) return null;
+  if (g !== null && s >= g) return { c: "ok", lbl: t("ch_grant"), d: s - g };
+  if (k !== null && s >= k) return { c: "mid", lbl: t("ch_kont"), d: g !== null ? g - s : 0 };
+  const need = (k ?? g) - s;
+  return { c: "no", lbl: t("ch_need", { d: fmt(need) }), d: need };
+}
+const scoreOn = () => S.score > 0 && scoreKind(S.kind);
+
+/* =====================================================================
+   KATALOG
+   ===================================================================== */
+function renderKinds() {
+  $("kinds").innerHTML = KINDS.map(k => `<button class="chip ${k === S.kind ? "on" : ""}" data-kind="${k}">${t("k_" + k)}</button>`).join("");
+}
+function sortOptions() {
+  const o = ["default"], rows = DB[S.kind] || [];
+  if (scoreKind(S.kind)) { if (S.score > 0) o.push("chance"); o.push("grant_desc", "grant_asc"); }
+  if (rows.some(r => r._price !== null)) o.push("price");
+  if (rows.some(r => r._kv !== null)) o.push("kvota");
+  o.push("name");
+  return o;
+}
+function renderControls() {
+  renderKinds();
+  const rows = DB[S.kind] || [];
+  // Izoh
+  const note = { litsey: "lit_note", texnikum: "tex_note", nodavlat: "nod_note" }[S.kind];
+  $("kind_note").innerHTML = note ? `<div class="note">${esc(t(note))}</div>` : "";
+  // Ichki bo'limlar
+  let subs = "";
+  if (S.kind === "otm") {
+    const cnt = {}; rows.forEach(r => { if (r.soha) cnt[r.soha] = (cnt[r.soha] || 0) + 1; });
+    const list = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]);
+    if (S.sub !== "ALL" && !cnt[S.sub]) S.sub = "ALL";
+    const lbl = s => tr(rows.find(r => r.soha === s) || { soha: s }, "soha");
+    subs = `<button class="chip sm ${S.sub === "ALL" ? "on" : ""}" data-sub="ALL">${t("all")} <small>${rows.length}</small></button>` +
+      list.map(s => `<button class="chip sm ${S.sub === s ? "on" : ""}" data-sub="${esc(s)}">${esc(lbl(s))} <small>${cnt[s]}</small></button>`).join("");
+  } else if (S.kind === "litsey") {
+    if (!["ALL", "otm", "iiv", "harbiy"].includes(S.sub)) S.sub = "ALL";
+    subs = ["ALL", "otm", "iiv", "harbiy"].map(g => `<button class="chip sm ${S.sub === g ? "on" : ""}" data-sub="${g}">${g === "ALL" ? t("all") : t("g_" + g)}</button>`).join("");
+  } else if (S.kind === "texnikum") {
+    subs = ["all", "9", "11", "otm2"].map(b => `<button class="chip sm ${S.base === b ? "on" : ""}" data-base="${b}">${b === "all" ? t("all") : t("b_" + b)}</button>`).join("");
+  }
+  $("subs").innerHTML = subs; $("subs").classList.toggle("hidden", !subs);
+  // Hudud
+  const vil = [...new Set(rows.filter(r => !r._all).map(r => r.viloyat))].filter(Boolean).sort((a, b) => a.localeCompare(b));
+  if (S.region && !vil.includes(S.region)) S.region = "";
+  $("region").innerHTML = `<option value="">${t("regions")}</option>` + vil.map(v => `<option value="${esc(v)}">📍 ${esc(tr(rows.find(r => r.viloyat === v), "viloyat"))}</option>`).join("");
+  $("region").value = S.region;
+  // Tartib
+  const so = sortOptions(); if (!so.includes(S.sort)) S.sort = "default";
+  $("sort").innerHTML = so.map(v => `<option value="${v}">${t("s_" + v)}</option>`).join("");
+  $("sort").value = S.sort;
+  // Ball
+  const sk = scoreKind(S.kind);
+  $("scorebox").classList.toggle("hidden", !sk);
+  if (sk) {
+    const mx = maxFor(S.kind); if (S.score > mx) S.score = 0;
+    $("score_r").max = mx; $("score_n").max = mx;
+    $("score_r").value = S.score; $("score_n").value = S.score > 0 ? fmt(S.score) : "";
+    $("score_lbl").textContent = t("my_score") + ` (0–${mx})`;
+    $("reach_lbl").textContent = t("only_reach"); $("reach_sw").classList.toggle("on", S.reach);
+    $("to_calc").textContent = t("open_calc");
+  }
+  renderSync();
+}
+function renderSync() {
+  const k = S.view === "dates" ? "muddat" : S.kind, st = STATUS[k];
+  const el = $("sync"); if (!el) return;
+  el.innerHTML = st ? `<span class="dot ${st}"></span>${t(st)}` : `<span class="dot"></span>${t("loading")}`;
+}
+
+function filtered() {
+  const rows = DB[S.kind] || [];
+  const toks = norm(query).split(" ").filter(Boolean);
+  const reachOnly = scoreOn() && S.reach;
+  const list = rows.filter(r => {
+    if (S.kind === "otm" && S.sub !== "ALL" && r.soha !== S.sub) return false;
+    if (S.kind === "litsey" && S.sub !== "ALL" && r._grp !== S.sub) return false;
+    if (S.kind === "texnikum" && S.base !== "all") {
+      if (r._all) { if (S.base === "otm2") return false; }
+      else if (S.base === "9" ? !r._n9 : S.base === "11" ? !(r._g11 + r._k11) : !r.otm_2kurs) return false;
+    }
+    if (S.region && !r._all && r.viloyat !== S.region) return false;
+    if (toks.length && !toks.every(x => r._hay.includes(x))) return false;
+    if (reachOnly) { const c = chance(r, S.score); if (!c || c.c === "no") return false; }
+    return true;
+  });
+  const byName = (a, b) => String(a._name).localeCompare(String(b._name));
+  const g = r => r._g ?? r._kb ?? r._ot;
+  switch (S.sort) {
+    case "grant_desc": list.sort((a, b) => (g(b) ?? -1) - (g(a) ?? -1)); break;
+    case "grant_asc": list.sort((a, b) => (g(a) ?? 999) - (g(b) ?? 999)); break;
+    case "price": list.sort((a, b) => (a._price ?? 1e9) - (b._price ?? 1e9)); break;
+    case "kvota": list.sort((a, b) => (b._kv ?? -1) - (a._kv ?? -1)); break;
+    case "name": list.sort(byName); break;
+    case "chance": {
+      const rank = r => { const c = chance(r, S.score); return !c ? 3 : c.c === "ok" ? 0 : c.c === "mid" ? 1 : 2; };
+      list.sort((a, b) => { const ra = rank(a), rb = rank(b); if (ra !== rb) return ra - rb;
+        if (ra === 2) return chance(a, S.score).d - chance(b, S.score).d; return (g(b) ?? 0) - (g(a) ?? 0); });
+    }
+  }
+  // Umumiy (butun respublika) qatorlar standart tartibda oxirida
+  if (S.sort === "default") list.sort((a, b) => (a._all ? 1 : 0) - (b._all ? 1 : 0));
+  return list;
+}
+function filtersActive() { return !!(query || S.region || S.sub !== "ALL" || (S.kind === "texnikum" && S.base !== "all") || (scoreOn() && S.reach)); }
+
+function renderResults() {
+  const list = $("list");
+  if (!DB[S.kind]) { list.innerHTML = '<div class="skel"></div>'.repeat(5); $("found").textContent = ""; $("sentinel").textContent = ""; return; }
+  current = filtered(); shown = 0;
+  $("found").textContent = t("found", { n: current.length });
+  if (!current.length) {
+    list.innerHTML = `<div class="empty"><b>🔎</b>${esc(t("none"))}<br><small>${esc(t("none_hint"))}</small>${filtersActive() ? `<br><button class="btn sec" data-act="clear-filters">${esc(t("clear"))}</button>` : ""}</div>`;
+    $("sentinel").textContent = ""; return;
+  }
+  list.innerHTML = ""; more();
+}
+function more() {
+  if (shown >= current.length) return;
+  const next = current.slice(shown, shown + PAGE);
+  $("list").insertAdjacentHTML("beforeend", next.map(card).join(""));
+  shown += next.length;
+  $("sentinel").textContent = shown < current.length ? "…" : "";
+}
+
+function regionText(r) {
+  const v = tr(r, "viloyat");
+  return r.shahar && r.shahar !== r.viloyat && !r._all ? `${v}, ${r.shahar}` : v;
+}
+function card(r, opts = {}) {
+  const fav = FAV.has(r._id), k = r._k;
+  const lead = opts.cmp
+    ? `<span class="cmpbox ${CMP.has(r._id) ? "on" : ""}" data-cmp="${r._id}">${CMP.has(r._id) ? "✓" : ""}</span>`
+    : "";
+  const star = opts.cmp ? "" : `<button class="fav ${fav ? "on" : ""}" data-fav="${r._id}" aria-label="fav">${fav ? "★" : "☆"}</button>`;
+  let line = "", tags = [], pills = [], foot = "";
+  tags.push(`<span class="tag">📍 ${esc(regionText(r))}</span>`);
+  if (r.mulk === "Nodavlat" && k !== "nodavlat") tags.push(`<span class="tag priv">🏢 ${esc(t("priv"))}</span>`);
+  if (k === "otm") {
+    line = tr(r, "yonalish");
+    if (r.soha && S.sub === "ALL") tags.push(`<span class="tag">${esc(tr(r, "soha"))}</span>`);
+  } else if (k === "texnikum") {
+    line = r._all ? tr(r, "yonalish") : "";
+    if (r._n9) pills.push(`<span class="pill g">9-sinf · ${r._n9} ${t("places")}</span>`);
+    if (r._g11 || r._k11) pills.push(`<span class="pill n">11-sinf · ${r._g11 ? t("grant") + " " + r._g11 + " · " : ""}${t("kont")} ${r._k11}</span>`);
+    if (r.otm_2kurs) tags.push(`<span class="tag path">${esc(t("path"))}</span>`);
+  } else {
+    line = tr(r, "yonalish");
+    if (r._kv) tags.push(`<span class="tag">👥 ${r._kv} ${t("places")}</span>`);
+  }
+  if (r._g !== null) pills.push(`<span class="pill g">${t("grant")} ${esc(r.grant_bal)}</span>`);
+  if (r._kb !== null) pills.push(`<span class="pill k">${t("kont")} ${esc(r.kontrakt_bal)}</span>`);
+  if (r._ot !== null) pills.push(`<span class="pill k">${t("f_otish")} ${esc(r.otish_bal)}</span>`);
+  const c = S.score > 0 && S.kind === k ? chance(r, S.score) : null;
+  if (c) pills.push(`<span class="ch ${c.c}">${esc(c.lbl)}</span>`);
+  if (r.kontrakt_narx && k === "otm") foot = `💰 ${esc(r.kontrakt_narx)}`;
+  return `<article class="card" data-open="${r._id}">
+    <div class="c-head">${lead}<div class="c-title">${esc(r._name)}</div>${star}</div>
+    ${line ? `<div class="c-line">${esc(line)}</div>` : ""}
+    <div class="tags">${tags.join("")}</div>
+    ${pills.length ? `<div class="pills">${pills.join("")}</div>` : ""}
+    ${foot ? `<div class="c-foot">${foot}</div>` : ""}
+  </article>`;
+}
+
+/* =====================================================================
+   BATAFSIL OYNA
+   ===================================================================== */
+const kv = (label, val) => val ? `<div class="kv"><span>${esc(label)}</span><span>${esc(val)}</span></div>` : "";
+const ul = items => items.length ? `<ul class="ul">${items.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
+
+function openDetail(r) {
+  const k = r._k; let h = "";
+  const s = S.score > 0 && (k === S.kind || k === "otm") ? S.score : 0;
+  // Ballar
+  if (r._g !== null || r._kb !== null || r._ot !== null) {
+    h += `<div class="sec"><h3>${t("sec_scores")}</h3><div class="big-scores">` +
+      (r._g !== null ? `<div class="bs g"><b>${esc(r.grant_bal)}</b><span>🎯 ${t("grant")}</span></div>` : "") +
+      (r._kb !== null ? `<div class="bs k"><b>${esc(r.kontrakt_bal)}</b><span>💳 ${t("kont")}</span></div>` : "") +
+      (r._ot !== null ? `<div class="bs k"><b>${esc(r.otish_bal)}</b><span>${t("f_otish")}</span></div>` : "") + `</div>`;
+    const c = chance(r, s);
+    if (c) {
+      const msg = c.c === "ok" ? t(c.d < 0.05 ? "v_ok0" : "v_ok", { s: fmt(s), d: fmt(c.d) }) : c.c === "mid" ? t("v_mid", { d: fmt(c.d) }) : t("v_no", { d: fmt(c.d) });
+      h += `<div class="verdict ${c.c}">${esc(msg)}</div>`;
+    }
+    h += `</div>`;
+  }
+  if (k === "otm") {
+    h += `<div class="sec"><h3>${t("sec_info")}</h3>` + kv(t("f_yonalish"), tr(r, "yonalish")) + kv(t("f_kasb"), tr(r, "kasb")) + kv(t("f_soha"), tr(r, "soha")) +
+      kv(t("f_region"), regionText(r)) + kv(t("f_fanlar"), tr(r, "fanlar")) + kv(t("f_sert"), tr(r, "sertifikat")) + kv(t("f_narx"), r.kontrakt_narx) +
+      kv(t("f_manba"), r.manba) + kv(t("f_yil"), r.yangilangan) + `</div>`;
+  } else if (k === "texnikum" && !r._all) {
+    if (r._n9) h += `<div class="sec"><h3>${t("sec_9")} · ${r._n9} ${t("places")}</h3><div style="font-size:12px;color:var(--hint);margin-bottom:6px">${t("kasblar")}</div>${ul(splitList(r.yonalish))}</div>`;
+    if (r._g11 || r._k11) h += `<div class="sec"><h3>${t("sec_11")}</h3><div class="pills" style="margin:0 0 8px">` +
+      `<span class="pill g">${t("grant")}: ${r._g11}</span><span class="pill k">${t("kont")}: ${r._k11}</span></div>` +
+      kv(t("f_shakl"), r.shakl_11) + `<div style="font-size:12px;color:var(--hint);margin:8px 0 6px">${t("mutax")}</div>${ul(splitList(r.yonalish_11))}</div>`;
+    if (r.otm_2kurs) h += `<div class="sec"><h3>${t("sec_otm2")}</h3>${ul(splitList(r.otm_2kurs))}</div>`;
+    h += `<div class="sec"><h3>${t("sec_info")}</h3>` + kv(t("f_region"), regionText(r)) + kv(t("f_qabul"), tr(r, "qabul_asosi")) + kv(t("f_muddat"), r.qabul_muddati) +
+      kv(t("f_portal"), r.portal) + kv(t("f_izoh"), tr(r, "izoh")) + kv(t("f_manba"), r.manba) + `</div>`;
+  } else {
+    const dirs = splitList(tr(r, "yonalish"));
+    if (dirs.length > 1) h += `<div class="sec"><h3>${t("sec_dirs")}</h3>${ul(dirs)}</div>`;
+    h += `<div class="sec"><h3>${t("sec_info")}</h3>` + (dirs.length === 1 ? kv(t("f_yonalish"), dirs[0]) : "") + kv(t("f_region"), regionText(r)) +
+      kv(t("f_qabul"), tr(r, "qabul_asosi")) + kv(t("f_kvota"), r.kvota) + kv(t("f_max"), r.max_ball) + kv(t("f_narx"), r.kontrakt_narx) +
+      kv(t("f_muddat"), r.qabul_muddati) + kv(t("f_portal"), r.portal) + kv(t("f_izoh"), tr(r, "izoh")) + kv(t("f_manba"), r.manba) + kv(t("f_yil"), r.yangilangan) + `</div>`;
+  }
+  // Tugmalar
+  const sameOtm = k === "otm" ? (DB.otm || []).filter(x => x.otm === r.otm).length : 0;
+  let acts = `<button class="btn" data-act="fav-sheet" data-id="${r._id}">${FAV.has(r._id) ? t("a_saved") : t("a_save")}</button>`;
+  acts += `<button class="btn sec" data-act="share" data-id="${r._id}">${t("a_share")}</button>`;
+  if (!r._all) acts += `<button class="btn sec" data-act="map" data-id="${r._id}">${t("a_map")}</button>`;
+  if (r.portal) acts += `<button class="btn sec" data-act="link" data-url="${esc(href(r.portal))}">${t("a_portal")}</button>`;
+  else if (k === "otm") acts += `<button class="btn sec" data-act="link" data-url="https://my.uzbmb.uz">${t("a_portal")}</button>`;
+  if (sameOtm > 1) acts += `<button class="btn sec" style="grid-column:1/-1" data-act="otm-all" data-id="${r._id}">${t("a_all_dirs", { n: sameOtm })}</button>`;
+  h += `<div class="actions">${acts}</div>`;
+
+  const sub = k === "otm" ? `🏛 ${tr(r, "yonalish")}` : t("k_" + k);
+  openSheet(`<div class="sh-head"><div style="flex:1"><h2>${esc(r._name)}</h2><div style="font-size:13px;color:var(--hint);margin-top:3px">${esc(sub)}</div></div><button class="x" data-act="close" aria-label="close">✕</button></div>${h}`);
+}
+
+function openSheet(html) {
+  $("panel").innerHTML = `<div class="grab"></div>` + html; $("panel").scrollTop = 0;
+  $("sheet").classList.add("open"); $("sheet").setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden"; sheetOpen = true; updateBack(); haptic("light");
+}
+function closeSheet() {
+  $("sheet").classList.remove("open"); $("sheet").setAttribute("aria-hidden", "true");
+  document.body.style.overflow = ""; sheetOpen = false; updateBack();
+}
+
+function openLink(url) { if (!url) return; if (tg && tg.openLink && inTG) tg.openLink(url); else window.open(url, "_blank", "noopener"); }
+function openMap(r) { openLink(`https://yandex.uz/maps/?text=${encodeURIComponent(`${r._name} ${r.shahar || ""} ${r.viloyat || ""} Uzbekistan`)}`); }
+function share(r) {
+  const lines = [`🎓 ${r._name}`];
+  if (r._k === "otm") lines.push(`📚 ${tr(r, "yonalish")}`);
+  lines.push(`📍 ${regionText(r)}`);
+  if (r._g !== null) lines.push(`🎯 ${t("grant")}: ${r.grant_bal}`);
+  if (r._kb !== null) lines.push(`💳 ${t("kont")}: ${r.kontrakt_bal}`);
+  if (r.kontrakt_narx && r._k === "otm") lines.push(`💰 ${r.kontrakt_narx}`);
+  if (r._k === "texnikum" && r._n9) lines.push(`🎒 9-sinf: ${r._n9} ${t("places")}`);
+  const url = CONFIG.BOT_APP_LINK ? `${CONFIG.BOT_APP_LINK}?startapp=${r._id.replace(":", "_")}` : href(r.portal || (r._k === "otm" ? "my.uzbmb.uz" : "my.edu.uz"));
+  const text = lines.join("\n");
+  if (inTG && tg.openTelegramLink) { tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`); return; }
+  if (navigator.share) { navigator.share({ text, url }).catch(() => {}); return; }
+  try { navigator.clipboard.writeText(text + "\n" + url).then(() => toast(t("t_copied"))); } catch (e) {}
+}
+
+/* =====================================================================
+   KALKULYATOR
+   ===================================================================== */
+const CALC = {
+  otm: [["c_mand", [["ona", 10, 1.1], ["mat", 10, 1.1], ["tar", 10, 1.1]]], ["c_main", [["f1", 30, 3.1], ["f2", 30, 2.1]]]],
+  lit: [[null, [["l1", 20, 3.1], ["l2", 20, 3.1], ["iq", 20, 1.1]]]],
+};
+const LBL = { ona: "c_ona", mat: "c_mat", tar: "c_tar", f1: "c_f1", f2: "c_f2", l1: "c_l1", l2: "c_l2", iq: "c_iq" };
+function calcTotal(mode) { let s = 0; CALC[mode].forEach(([, fs]) => fs.forEach(([f, , k]) => s += (S.calc[f] || 0) * k)); return Math.round(s * 10) / 10; }
+function renderCalc() {
+  const mode = S.calcMode, max = mode === "otm" ? 189 : 146, total = calcTotal(mode);
+  let h = `<div class="seg"><button class="${mode === "otm" ? "on" : ""}" data-act="cmode" data-m="otm">${t("c_otm")}</button><button class="${mode === "lit" ? "on" : ""}" data-act="cmode" data-m="lit">${t("c_lit")}</button></div>`;
+  h += `<div class="total"><b id="c_total">${fmt(total)}</b> <small>/ ${max}</small><div class="bar"><i id="c_bar" style="width:${total / max * 100}%"></i></div><div id="c_reach"></div></div>`;
+  CALC[mode].forEach(([title, fs]) => {
+    if (title) h += `<h4 class="grp">${t(title)}</h4>`;
+    h += `<div class="field" ${title ? "" : 'style="margin-top:10px"'}>` + fs.map(([f, n, k]) => `
+      <div class="frow"><div class="lb"><div>${t(LBL[f])}</div><small>${t("c_q", { n, k })}</small></div>
+      <div class="step"><button data-act="step" data-f="${f}" data-d="-1" aria-label="-">−</button><input data-calc="${f}" type="number" inputmode="numeric" min="0" max="${n}" value="${S.calc[f] || 0}"><button data-act="step" data-f="${f}" data-d="1" aria-label="+">+</button></div>
+      <div class="pts" id="pts_${f}">${fmt((S.calc[f] || 0) * k)}</div></div>`).join("") + `</div>`;
+  });
+  h += `<div class="note" style="margin-top:10px">${esc(t(mode === "otm" ? "c_note" : "c_lit_note"))}</div>`;
+  h += `<div class="actions" style="grid-template-columns:2fr 1fr"><button class="btn" data-act="${mode === "otm" ? "calc-go" : "lit-go"}">${t(mode === "otm" ? "c_go" : "c_lit_go")}</button><button class="btn sec" data-act="calc-reset">${t("c_reset")}</button></div>`;
+  $("calc").innerHTML = h;
+  updateCalc();
+  if (mode === "otm") loadKind("otm").then(() => S.view === "calc" && updateCalc());
+  else loadKind("litsey").then(() => S.view === "calc" && updateCalc());
+}
+function updateCalc() {
+  const mode = S.calcMode, max = mode === "otm" ? 189 : 146, total = calcTotal(mode);
+  if (!$("c_total")) return;
+  $("c_total").textContent = fmt(total); $("c_bar").style.width = (total / max * 100) + "%";
+  CALC[mode].forEach(([, fs]) => fs.forEach(([f, , k]) => { const el = $("pts_" + f); if (el) el.textContent = fmt((S.calc[f] || 0) * k); }));
+  let r = "";
+  if (mode === "otm" && DB.otm && total > 0) {
+    let g = 0, kk = 0; DB.otm.forEach(x => { const c = chance(x, total); if (c && c.c === "ok") g++; else if (c && c.c === "mid") kk++; });
+    r = `<div class="reach"><div class="g"><b>${g}</b>${t("c_reach_g")}</div><div class="k"><b>${kk}</b>${t("c_reach_k")}</div></div>`;
+  } else if (mode === "lit" && DB.litsey && total > 0) {
+    const n = DB.litsey.filter(x => x._ot !== null && total >= x._ot).length;
+    if (DB.litsey.some(x => x._ot !== null)) r = `<div class="reach"><div class="g" style="grid-column:1/-1"><b>${n}</b>${t("c_lit_reach")}</div></div>`;
+  }
+  $("c_reach").innerHTML = r;
+}
+function setCalc(f, v) {
+  const def = [...CALC.otm, ...CALC.lit].flatMap(x => x[1]).find(x => x[0] === f); if (!def) return;
+  S.calc[f] = Math.max(0, Math.min(def[1], Math.round(v) || 0)); save();
+}
+
+/* =====================================================================
+   SAQLANGANLAR + TAQQOSLASH
+   ===================================================================== */
+async function renderFav() {
+  const box = $("favs");
+  const ids = [...FAV];
+  if (!ids.length) {
+    box.innerHTML = `<div class="empty"><b>⭐</b>${esc(t("fav_empty"))}<br><small>${esc(t("fav_empty_hint"))}</small><br><button class="btn" data-view="catalog">${esc(t("to_catalog"))}</button></div>`;
+    cmpMode = false; CMP.clear(); renderCmpBar(); return;
+  }
+  const kinds = [...new Set(ids.map(i => i.split(":")[0]))].filter(k => KINDS.includes(k));
+  if (kinds.some(k => !DB[k])) box.innerHTML = '<div class="skel" style="margin-top:8px"></div>'.repeat(3);
+  await Promise.all(kinds.map(k => loadKind(k)));
+  if (S.view !== "fav") return;
+  let h = `<div style="display:flex;justify-content:space-between;align-items:center;margin:4px 2px 0"><span style="font-size:13px;color:var(--hint)">${ids.length} ⭐</span>
+    <button class="chip sm ${cmpMode ? "on" : ""}" data-act="cmp-mode">${cmpMode ? t("cmp_done") : t("cmp_mode")}</button></div>`;
+  if (cmpMode) h += `<div class="note" style="margin-top:8px">${esc(t("cmp_hint"))}</div>`;
+  KINDS.forEach(k => {
+    const its = ids.filter(i => i.startsWith(k + ":"));
+    if (!its.length) return;
+    h += `<h4 class="grp">${t("k_" + k)} · ${its.length}</h4><div class="list">`;
+    its.forEach(id => {
+      const r = BYID[id];
+      h += r ? card(r, { cmp: cmpMode }) :
+        `<div class="card" style="cursor:default"><div class="c-head"><div class="c-title" style="color:var(--hint)">${esc(t("fav_gone"))}</div><button class="chip sm" data-act="unfav" data-id="${esc(id)}">${t("remove")}</button></div></div>`;
+    });
+    h += `</div>`;
+  });
+  box.innerHTML = h; renderCmpBar();
+}
+function renderCmpBar() {
+  const show = S.view === "fav" && cmpMode && CMP.size >= 2;
+  $("cmpbar").classList.toggle("hidden", !show);
+  if (show) $("cmp_run").textContent = t("cmp_run", { n: CMP.size });
+}
+function toggleCmp(id) {
+  if (CMP.has(id)) CMP.delete(id);
+  else {
+    const k = id.split(":")[0];
+    if ([...CMP].some(x => !x.startsWith(k + ":"))) { toast(t("t_cmp_kind")); return; }
+    if (CMP.size >= 3) { toast(t("t_cmp_max")); return; }
+    CMP.add(id);
+  }
+  haptic(); renderFav();
+}
+function openCompare() {
+  const rs = [...CMP].map(i => BYID[i]).filter(Boolean); if (rs.length < 2) return;
+  const k = rs[0]._k;
+  const best = (vals, dir) => { const ns = vals.map(num).filter(v => v !== null); if (ns.length < 2) return null; return dir > 0 ? Math.max(...ns) : Math.min(...ns); };
+  const rowsDef = k === "otm"
+    ? [["f_yonalish", r => tr(r, "yonalish")], ["f_region", regionText], ["🎯 " + t("grant"), r => r.grant_bal, -1], ["💳 " + t("kont"), r => r.kontrakt_bal, -1],
+       ["f_narx", r => r.kontrakt_narx, -1, r => r._price], ["f_fanlar", r => tr(r, "fanlar")], ["f_sert", r => tr(r, "sertifikat")]]
+    : k === "texnikum"
+    ? [["f_region", regionText], ["9-sinf", r => r._n9 ? `${r._n9} ${t("places")}` : "—", 1, r => r._n9], ["11 · " + t("grant"), r => String(r._g11), 1],
+       ["11 · " + t("kont"), r => String(r._k11), 1], ["f_shakl", r => r.shakl_11], ["OTM 2-kurs", r => r.otm_2kurs ? "✓ " + splitList(r.otm_2kurs).length : "—"], ["f_muddat", r => r.qabul_muddati]]
+    : [["f_yonalish", r => tr(r, "yonalish")], ["f_region", regionText], ["f_qabul", r => tr(r, "qabul_asosi")], ["f_kvota", r => r.kvota, 1],
+       ["🎯 " + t("grant"), r => r.grant_bal, -1], ["💳 " + t("kont"), r => r.kontrakt_bal, -1], ["f_narx", r => r.kontrakt_narx, -1, r => r._price], ["f_muddat", r => r.qabul_muddati]];
+  let body = "";
+  rowsDef.forEach(([lbl, get, dir, numGet]) => {
+    const vals = rs.map(r => get(r) || "");
+    if (vals.every(v => !v || v === "—")) return;
+    const nv = numGet ? rs.map(numGet) : vals;
+    const b = dir ? best(nv, dir) : null;
+    body += `<tr><td>${esc(lbl.startsWith("f_") ? t(lbl) : lbl)}</td>${vals.map((v, i) => `<td class="${b !== null && num(nv[i]) === b ? "best" : ""}">${esc(v || "—")}</td>`).join("")}</tr>`;
+  });
+  openSheet(`<div class="sh-head"><h2>⚖️ ${t("cmp_title")}</h2><button class="x" data-act="close">✕</button></div>
+    <div class="cmp"><table><thead><tr><th></th>${rs.map(r => `<th>${esc(r._name)}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`);
+}
+
+/* =====================================================================
+   MUDDATLAR
+   ===================================================================== */
+const pd = s => { const m = String(s || "").match(/(\d{4})-(\d{2})-(\d{2})/); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
+const fdate = d => `${d.getDate()}-${t("months")[d.getMonth()]} ${d.getFullYear()}`;
+async function renderDates() {
+  const box = $("dates");
+  if (!DB.muddat) box.innerHTML = '<div class="skel" style="margin-top:8px"></div>'.repeat(4);
+  await loadKind("muddat");
+  if (S.view !== "dates") return;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const DAY = 864e5;
+  const evs = (DB.muddat || []).map(r => {
+    const a = pd(r.boshlanish), b = pd(r.tugash) || a; if (!a) return null;
+    const st = today < a ? "soon" : today > b ? "past" : "now";
+    return { r, a, b, st, toStart: Math.round((a - today) / DAY), toEnd: Math.round((b - today) / DAY), prog: Math.min(1, Math.max(0, (today - a) / Math.max(DAY, b - a))) };
+  }).filter(Boolean);
+  const order = { now: 0, soon: 1, past: 2 };
+  evs.sort((x, y) => order[x.st] - order[y.st] || (x.st === "past" ? y.b - x.b : x.a - y.a));
+  const turs = ["all", ...["otm", "litsey", "texnikum", "harbiy"].filter(tu => evs.some(e => e.r.tur === tu))];
+  if (!turs.includes(S.dTur)) S.dTur = "all";
+  const list = evs.filter(e => S.dTur === "all" || e.r.tur === S.dTur);
+  let h = "";
+  const nxt = list.find(e => e.st !== "past");
+  if (nxt) {
+    const cnt = nxt.st === "now" ? (nxt.toEnd === 0 ? t("d_today") : t("d_ends", { d: nxt.toEnd })) : (nxt.toStart === 0 ? t("d_today") : nxt.toStart);
+    h += `<div class="hero"><small>${nxt.st === "now" ? "🟢 " + t("d_now") : "⏳ " + t("d_next")}</small><b>${esc(tr(nxt.r, "nomi"))}</b>
+      <div><span class="cnt">${esc(String(cnt))}</span> ${nxt.st === "soon" && nxt.toStart ? t("days") + " · " + t("d_starts") : ""}</div>
+      <small>${fdate(nxt.a)} — ${fdate(nxt.b)}</small></div>`;
+  }
+  h += `<div class="chips" style="margin-bottom:8px">${turs.map(tu => `<button class="chip sm ${S.dTur === tu ? "on" : ""}" data-dtur="${tu}">${t("d_" + tu)}</button>`).join("")}</div>`;
+  h += `<div class="list">` + list.map(e => {
+    const lbl = e.st === "now" ? (e.toEnd === 0 ? t("d_today") : t("d_ends", { d: e.toEnd })) : e.st === "soon" ? (e.toStart === 0 ? t("d_today") : t("d_left", { d: e.toStart })) : t("d_past");
+    const approx = ["1", "ha", "true"].includes(String(e.r.taxminiy).trim()) ? ` · <i>${t("d_approx")}</i>` : "";
+    return `<div class="ev ${e.st === "past" ? "past" : ""}"><div class="top"><b>${esc(tr(e.r, "nomi"))}</b><span class="st ${e.st}">${esc(lbl)}</span></div>
+      <div class="dates">📅 ${fdate(e.a)} — ${fdate(e.b)}${approx}</div>
+      ${e.st === "now" ? `<div class="bar"><i style="width:${e.prog * 100}%"></i></div>` : ""}
+      ${tr(e.r, "izoh") ? `<div class="iz">${esc(tr(e.r, "izoh"))}</div>` : ""}
+      ${e.r.havola ? `<div style="margin-top:8px"><button class="chip sm" data-act="link" data-url="${esc(href(e.r.havola))}">${t("d_open")} · ${esc(e.r.havola)}</button></div>` : ""}</div>`;
+  }).join("") + `</div>`;
+  h += `<div class="note" style="margin-top:12px">${esc(t("d_remind"))}</div>`;
+  box.innerHTML = h;
+}
+
+/* =====================================================================
+   NAVIGATSIYA
+   ===================================================================== */
+const VIEWS = [["catalog", "🔎"], ["calc", "🧮"], ["fav", "⭐"], ["dates", "📅"]];
+function renderTabbar() {
+  $("tabbar").innerHTML = VIEWS.map(([v, i]) => `<button class="${S.view === v ? "on" : ""}" data-view="${v}"><span class="i">${i}</span>${t("v_" + v)}${v === "fav" && FAV.size ? `<span class="badge">${FAV.size}</span>` : ""}</button>`).join("");
+}
+function renderStatic() {
+  document.documentElement.lang = lang;
+  $("lang_btn").textContent = lang === "uz" ? "RU" : "UZ";
+  $("q").placeholder = t("search");
+  $("subtitle").textContent = t("sub_" + S.view);
+  renderTabbar();
+}
+async function go(view, { keepScroll } = {}) {
+  if (view !== S.view) haptic();
+  S.view = view; save();
+  if (view !== "fav") { cmpMode = false; CMP.clear(); }
+  VIEWS.forEach(([v]) => $("v-" + v).classList.toggle("hidden", v !== view));
+  renderStatic(); renderCmpBar(); updateBack();
+  if (!keepScroll) window.scrollTo(0, 0);
+  if (view === "catalog") { renderControls(); renderResults(); await loadKind(S.kind); if (S.view === "catalog") { renderControls(); renderResults(); } }
+  else if (view === "calc") renderCalc();
+  else if (view === "fav") renderFav();
+  else if (view === "dates") renderDates();
+}
+async function setKind(k) {
+  if (k === S.kind) return;
+  haptic(); S.kind = k; S.sub = "ALL"; S.sort = "default"; save();
+  renderControls(); renderResults(); window.scrollTo(0, 0);
+  await loadKind(k);
+  if (S.kind === k && S.view === "catalog") { renderControls(); renderResults(); }
+}
+function updateBack() {
+  if (!inTG || !tg.BackButton) return;
+  try { if (sheetOpen || S.view !== "catalog") tg.BackButton.show(); else tg.BackButton.hide(); } catch (e) {}
+}
+function back() { if (sheetOpen) closeSheet(); else if (S.view !== "catalog") go("catalog"); }
+
+let toastT;
+function toast(msg) { const el = $("toast"); el.textContent = msg; el.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("show"), 1700); }
+
+/* =====================================================================
+   HODISALAR
+   ===================================================================== */
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-fav],[data-cmp],[data-act],[data-view],[data-kind],[data-sub],[data-base],[data-dtur],[data-open]");
+  if (!el) return;
+  const d = el.dataset;
+  if (d.fav) { e.stopPropagation(); toggleFav(d.fav); if (S.view === "fav") renderFav(); return; }
+  if (d.cmp) { toggleCmp(d.cmp); return; }
+  if (d.view) { if (sheetOpen) closeSheet(); go(d.view); return; }
+  if (d.kind) { setKind(d.kind); return; }
+  if (d.sub) { haptic(); S.sub = d.sub; save(); renderControls(); renderResults(); return; }
+  if (d.base) { haptic(); S.base = d.base; save(); renderControls(); renderResults(); return; }
+  if (d.dtur) { haptic(); S.dTur = d.dtur; save(); renderDates(); return; }
+  if (d.open && !d.act) {
+    if (S.view === "fav" && cmpMode) { toggleCmp(d.open); return; }
+    const r = BYID[d.open]; if (r) openDetail(r); return;
+  }
+  const r = d.id ? BYID[d.id] : null;
+  switch (d.act) {
+    case "close": closeSheet(); break;
+    case "lang": lang = lang === "uz" ? "ru" : "uz"; lsSet("cm_lang", lang); haptic(); go(S.view, { keepScroll: true }); break;
+    case "refresh": haptic("light"); toast(t("loading")); loadKind(S.view === "dates" ? "muddat" : S.kind, true); break;
+    case "clear-q": $("q").value = ""; query = ""; el.classList.add("hidden"); renderResults(); $("q").focus(); break;
+    case "clear-filters": $("q").value = ""; query = ""; S.region = ""; S.sub = "ALL"; S.base = "all"; S.reach = false; save(); document.querySelector(".clr").classList.add("hidden"); renderControls(); renderResults(); break;
+    case "reach": S.reach = !S.reach; save(); haptic(); $("reach_sw").classList.toggle("on", S.reach); renderResults(); break;
+    case "fav-sheet": if (r) toggleFav(r._id); if (S.view === "fav") renderFav(); break;
+    case "unfav": FAV.delete(d.id); saveFav(); renderFav(); break;
+    case "share": if (r) share(r); break;
+    case "map": if (r) openMap(r); break;
+    case "link": openLink(d.url); break;
+    case "otm-all": if (r) { closeSheet(); query = r.otm; $("q").value = r.otm; document.querySelector(".clr").classList.remove("hidden"); S.sub = "ALL"; S.region = ""; if (S.view !== "catalog") go("catalog"); else { renderControls(); renderResults(); window.scrollTo(0, 0); } } break;
+    case "cmode": S.calcMode = d.m; save(); haptic(); renderCalc(); break;
+    case "step": setCalc(d.f, (S.calc[d.f] || 0) + +d.d); haptic(); const inp = document.querySelector(`[data-calc="${d.f}"]`); if (inp) inp.value = S.calc[d.f]; updateCalc(); break;
+    case "calc-reset": CALC[S.calcMode].forEach(([, fs]) => fs.forEach(([f]) => S.calc[f] = 0)); save(); renderCalc(); break;
+    case "calc-go": { const s = calcTotal("otm"); S.kind = "otm"; S.score = s; S.sort = s > 0 ? "chance" : "default"; S.sub = "ALL"; save(); go("catalog"); break; }
+    case "lit-go": { const s = calcTotal("lit"); S.kind = "litsey"; S.sub = "ALL"; S.score = s; save(); go("catalog"); break; }
+    case "cmp-mode": cmpMode = !cmpMode; CMP.clear(); haptic(); renderFav(); break;
+    case "cmp-run": openCompare(); break;
+  }
+});
+
+let qT;
+$("q").addEventListener("input", e => {
+  document.querySelector(".clr").classList.toggle("hidden", !e.target.value);
+  clearTimeout(qT); qT = setTimeout(() => { query = e.target.value; renderResults(); }, 120);
+});
+$("q").addEventListener("keydown", e => { if (e.key === "Enter") e.target.blur(); });
+$("region").addEventListener("change", e => { S.region = e.target.value; save(); renderResults(); });
+$("sort").addEventListener("change", e => { S.sort = e.target.value; save(); renderResults(); });
+function setScore(v, from) {
+  const mx = maxFor(S.kind);
+  const hadScore = S.score > 0;
+  S.score = Math.max(0, Math.min(mx, num(v) || 0)); save();
+  if (from !== "r") $("score_r").value = S.score;
+  if (from !== "n") $("score_n").value = S.score > 0 ? fmt(S.score) : "";
+  if (hadScore !== (S.score > 0)) { if (S.score > 0 && S.sort === "default") S.sort = "chance"; if (!S.score && S.sort === "chance") S.sort = "default"; renderControls(); }
+  renderResults();
+}
+let sT;
+$("score_r").addEventListener("input", e => { clearTimeout(sT); const v = e.target.value; sT = setTimeout(() => setScore(v, "r"), 60); });
+$("score_n").addEventListener("input", e => { clearTimeout(sT); const v = e.target.value; sT = setTimeout(() => setScore(v, "n"), 250); });
+$("calc").addEventListener("input", e => { const f = e.target.dataset.calc; if (!f) return; setCalc(f, e.target.value); updateCalc(); });
+$("calc").addEventListener("change", e => { const f = e.target.dataset.calc; if (f) e.target.value = S.calc[f]; });
+
+// Cheksiz aylantirish
+const io = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting) && S.view === "catalog") more(); }, { rootMargin: "600px" });
+io.observe($("sentinel"));
+
+/* =====================================================================
+   ISHGA TUSHIRISH
+   ===================================================================== */
+(function init() {
+  const savedLang = lsGet("cm_lang");
+  if (savedLang === "uz" || savedLang === "ru") lang = savedLang;
+  else if (inTG && tg.initDataUnsafe && tg.initDataUnsafe.user && /^(ru|be|uk|kk)/.test(tg.initDataUnsafe.user.language_code || "")) lang = "ru";
+
+  if (tg) {
+    try { tg.ready(); tg.expand(); } catch (e) {}
+    try { if (tg.isVersionAtLeast("6.1")) { tg.setHeaderColor("secondary_bg_color"); tg.setBackgroundColor("secondary_bg_color"); } } catch (e) {}
+    try { if (tg.isVersionAtLeast("7.10") && tg.setBottomBarColor) tg.setBottomBarColor("secondary_bg_color"); } catch (e) {}
+    try { if (tg.isVersionAtLeast("7.7")) tg.disableVerticalSwipes(); } catch (e) {}
+    try { tg.BackButton.onClick(back); } catch (e) {}
+  }
+  initCloudFav();
+
+  // Deep link: startapp=otm_1a2b3c4d yoki startapp=dates / calc / fav
+  const sp = (inTG && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || new URLSearchParams(location.search).get("tgWebAppStartParam") || "";
+  if (["dates", "calc", "fav", "catalog"].includes(sp)) S.view = sp;
+  const m = sp.match(/^(otm|nodavlat|akademiya|litsey|texnikum)_([0-9a-f]{8})$/);
+  if (m) { S.view = "catalog"; S.kind = m[1]; }
+
+  go(S.view).then(async () => {
+    if (m) { await loadKind(m[1]); const r = BYID[m[1] + ":" + m[2]]; if (r) openDetail(r); }
+  });
+  // Qolgan jadvallarni fonda tayyorlab qo'yamiz
+  setTimeout(() => KINDS.concat("muddat").forEach(k => loadKind(k)), 1200);
+})();
+</script>
 </body>
 </html>
